@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/formTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/raise_complaint"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="24dp"/>
+
+            <EditText
+                android:id="@+id/complaintName"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="@string/your_name"
+                android:background="@drawable/edit_text_bg"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:inputType="textPersonName"
+                android:importantForAutofill="no"
+                android:textColor="?android:attr/textColorPrimary"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/issue_type"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/categorySpinner"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@drawable/edit_text_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/problem_type"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/problemTypeSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@drawable/edit_text_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
+                android:id="@+id/customIssue"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="@string/specify_issue"
+                android:visibility="gone"
+                android:background="@drawable/edit_text_bg"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:inputType="text"
+                android:importantForAutofill="no"
+                android:textColor="?android:attr/textColorPrimary"/>
+
+            <EditText
+                android:id="@+id/issueDescription"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:hint="@string/issue_description_hint"
+                android:gravity="top"
+                android:background="@drawable/edit_text_bg"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:inputType="textMultiLine"
+                android:importantForAutofill="no"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/location_label"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="8dp"/>
+
+            <Spinner
+                android:id="@+id/locationSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:background="@drawable/edit_text_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <EditText
+                android:id="@+id/manualLocationDetail"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="@string/classroom_number"
+                android:background="@drawable/edit_text_bg"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:inputType="text"
+                android:importantForAutofill="no"
+                android:textColor="?android:attr/textColorPrimary"/>
+
+            <TextView
+                android:id="@+id/imageCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No images attached"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/attachPhotoBtn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:text="@string/attach_photo"
+                app:icon="@android:drawable/ic_menu_camera"
+                android:layout_marginBottom="24dp"/>
+
+            <Button
+                android:id="@+id/submitComplaintBtn"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="@string/submit_complaint"
+                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
+
+</RelativeLayout>

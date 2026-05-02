@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/group_admin" android:title="Admin Section">
+        <menu>
+            <item
+                android:id="@+id/nav_admin_dashboard"
+                android:icon="@android:drawable/ic_menu_sort_by_size"
+                android:title="Complaint Status" />
+            <item
+                android:id="@+id/nav_admin_notifications"
+                android:icon="@android:drawable/ic_popup_reminder"
+                android:title="Notifications" />
+            <item
+                android:id="@+id/nav_users_data"
+                android:icon="@android:drawable/ic_menu_agenda"
+                android:title="Users Data" />
+            <item
+                android:id="@+id/nav_update_profile"
+                android:icon="@android:drawable/ic_menu_edit"
+                android:title="Update Profile" />
+        </menu>
+    </item>
+
+    <item android:id="@+id/group_user" android:title="User Section">
+        <menu>
+            <item
+                android:id="@+id/nav_profile"
+                android:icon="@drawable/ic_person"
+                android:title="Profile" />
+        </menu>
+    </item>
+
+    <item android:id="@+id/group_complaints" android:title="Complaint List">
+        <menu>
+            <item
+                android:id="@+id/nav_total_complaints"
+                android:icon="@drawable/ic_home"
+                android:title="Total Complaints" />
+            <item
+                android:id="@+id/nav_pending_complaints"
+                android:icon="@android:drawable/ic_menu_recent_history"
+                android:title="Pending Complaints" />
+            <item
+                android:id="@+id/nav_processing_complaints"
+                android:icon="@android:drawable/ic_menu_manage"
+                android:title="Processing Complaints" />
+            <item
+                android:id="@+id/nav_resolved_complaints"
+                android:icon="@android:drawable/checkbox_on_background"
+                android:title="Resolved Complaints" />
+        </menu>
+    </item>
+
+    <item android:id="@+id/group_support" android:title="Support Section">
+        <menu>
+            <item
+                android:id="@+id/nav_help"
+                android:icon="@android:drawable/ic_menu_help"
+                android:title="Help / User Guide" />
+            <item
+                android:id="@+id/nav_contact"
+                android:icon="@android:drawable/ic_menu_call"
+                android:title="Contact Support" />
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@android:drawable/ic_menu_info_details"
+                android:title="About App" />
+        </menu>
+    </item>
+
+    <item android:id="@+id/group_account" android:title="Account Section">
+        <menu>
+            <item
+                android:id="@+id/nav_change_password"
+                android:icon="@android:drawable/ic_lock_idle_lock"
+                android:title="Change Password" />
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_lock_power_off"
+                android:title="Logout" />
+        </menu>
+    </item>
+
+</menu>

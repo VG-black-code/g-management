@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Clean White Base (Shield/Card shape) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,30 C32,26 36,22 40,22 H68 C72,22 76,26 76,30 V78 C76,82 72,86 68,86 H40 C36,86 32,82 32,78 V30 Z" />
+
+    <!-- University Building (Institutional Stability) -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M54,30L38,38V41H70V38L54,30ZM42,43V58H46V43H42ZM52,43V58H56V43H52ZM62,43V58H66V43H62ZM38,60V63H70V60H38Z" />
+
+    <!-- Action/Complaint Indicator (Professional Orange) -->
+    <path
+        android:fillColor="#FF6F00"
+        android:pathData="M68,68 C68,62.4 72.4,58 78,58 C83.6,58 88,62.4 88,68 C88,73.6 83.6,78 78,78 C72.4,78 68,73.6 68,68 Z" />
+
+    <!-- Simple Status Line inside the indicator -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M74,67 H82 V69 H74 Z" />
+</vector>

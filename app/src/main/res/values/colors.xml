@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Gaming Colors -->
+    <color name="gaming_neon_green">#39FF14</color>
+    <color name="gaming_neon_cyan">#00FFFF</color>
+    <color name="gaming_neon_magenta">#FF00FF</color>
+    <color name="gaming_dark_bg">#0D0D0D</color>
+    <color name="gaming_card_bg">#1A1A1A</color>
+
+    <!-- Default Blue Theme -->
+    <color name="blue_primary">#1976D2</color>
+    <color name="blue_light">#BBDEFB</color>
+    <color name="bg_light">#F5F7FA</color>
+    <color name="card_bg_light">#FFFFFF</color>
+    <color name="text_primary_light">#212121</color>
+    <color name="text_secondary_light">#757575</color>
+
+    <!-- Dark Mode Colors -->
+    <color name="blue_primary_dark">#90CAF9</color>
+    <color name="bg_dark">#121212</color>
+    <color name="card_bg_dark">#1E1E1E</color>
+    <color name="text_primary_dark">#EEEEEE</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
+
+    <!-- Orange Theme (Requested) -->
+    <color name="orange_primary">#FF6F00</color>
+    <color name="orange_primary_variant">#E65100</color>
+    <color name="orange_bg">#FFF3E0</color>
+
+    <!-- Lavender Theme -->
+    <color name="lavender_primary">#673AB7</color>
+    <color name="lavender_bg">#F3E5F5</color>
+
+    <!-- Light Blue Theme -->
+    <color name="lightblue_primary">#03A9F4</color>
+    <color name="lightblue_bg">#E1F5FE</color>
+
+    <color name="status_pending">#F44336</color>
+    <color name="status_pending_dark">#D32F2F</color>
+    <color name="status_pending_light">#FFCDD2</color>
+
+    <color name="status_in_progress">#FF9800</color>
+    <color name="status_in_progress_dark">#F57C00</color>
+    <color name="status_in_progress_light">#FFE0B2</color>
+
+    <color name="status_resolved">#4CAF50</color>
+    <color name="status_resolved_dark">#388E3C</color>
+    <color name="status_resolved_light">#C8E6C9</color>
+
+    <color name="orange_accent">#FF6F00</color>
+</resources>

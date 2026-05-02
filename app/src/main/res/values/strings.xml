@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">Smartify</string>
+    <string name="welcome_to_smart_notify">Welcome to Smartify</string>
+    <string name="log_in_to_raise_an_issue">Log in to raise an issue</string>
+    <string name="college_email_student_id">College Email / Student ID</string>
+    <string name="password">Password</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="log_in">LOG IN</string>
+    <string name="dont_have_an_account_register_now">Don\'t have an account? Register Now</string>
+    <string name="continue_with_microsoft">Continue with Microsoft</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="overview">Overview</string>
+    <string name="search_complaints">Search complaints...</string>
+    <string name="classroom_issues">Classroom Issues</string>
+    <string name="facilities">Campus Facilities</string>
+    <string name="hostel">Hostel Complaints</string>
+    <string name="academic">Academic Issues</string>
+    <string name="lab_it">Lab / IT Issues</string>
+    <string name="my_complaints">Recent History</string>
+    <string name="status_in_progress">Status: In Progress</string>
+    <string name="status_resolved">Status: Resolved</string>
+    <string name="raise_issue">Raise Issue</string>
+    <string name="user_name">Sarah Jenkins</string>
+    <string name="user_role">Student</string>
+    <string name="ac_issue_title">AC not working (Room 201)</string>
+    <string name="lighting_issue_title">Poor lighting (Library)</string>
+    <string name="mar_12">Mar 12</string>
+    <string name="mar_10">Mar 10</string>
+    <string name="notifications">Notifications</string>
+    <string name="menu">Menu</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_issues">My Issues</string>
+    <string name="nav_announcements">Announcements</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Registration Strings -->
+    <string name="create_account">Create Account</string>
+    <string name="full_name">Full Name</string>
+    <string name="email_id">Email ID</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="mobile_number">Mobile Number</string>
+    <string name="verify_code">Verify Code</string>
+    <string name="student_id">Student ID</string>
+    <string name="faculty_id">Faculty ID</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="create">CREATE</string>
+    <string name="user_type">User Type</string>
+
+    <!-- Complaint Strings -->
+    <string name="raise_complaint">Raise a Complaint</string>
+    <string name="your_name">Your Name / User ID</string>
+    <string name="department">Department</string>
+    <string name="classroom_number">Location Detail (Room/Block)</string>
+    <string name="issue_type">Select Category</string>
+    <string name="problem_type">Problem Type</string>
+    <string name="location_label">Select Location</string>
+    <string name="specify_issue">Specify problem...</string>
+    <string name="issue_description_hint">Complaint Description</string>
+    <string name="attach_photo">Upload Image</string>
+    <string name="submit_complaint">SUBMIT COMPLAINT</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="show_password">Show Password</string>
+
+    <string name="about_welcome">Welcome to Smartify.</string>
+    <string name="about_description">Smartify is designed to provide a simple and effective platform for users to submit and track their notifications efficiently.</string>
+
+    <string name="admin_title">Admin</string>
+</resources>
