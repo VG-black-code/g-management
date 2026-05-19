@@ -66,7 +66,7 @@ public class ProfileActivity extends AppCompatActivity {
     private LinearLayout studentSection, facultySection, adminSection, workerSection;
 
     // Role Specific Fields
-    private TextInputEditText studentId, studentDept, studentCourse, studentYearSem, studentCollege;
+    private TextInputEditText studentId, studentDept, studentYearSem, studentCollege;
     private TextInputEditText facultyId, facultyDept, facultyDesignation, facultySubjects, facultyOffice;
     private TextInputEditText adminId, adminDept, adminPosition;
     private TextInputEditText workerId, workerDept, workerSkills, workerExperience, workerCategory;
@@ -160,7 +160,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         studentId = findViewById(R.id.studentId);
         studentDept = findViewById(R.id.studentDept);
-        studentCourse = findViewById(R.id.studentCourse);
         studentYearSem = findViewById(R.id.studentYearSem);
         studentCollege = findViewById(R.id.studentCollege);
 
@@ -357,13 +356,11 @@ public class ProfileActivity extends AppCompatActivity {
                 if (isAdminEditing) {
                     studentId.setText(getIntent().getStringExtra("student_id"));
                     studentDept.setText(getIntent().getStringExtra("department"));
-                    studentCourse.setText(getIntent().getStringExtra("program"));
                     studentYearSem.setText(getIntent().getStringExtra("year"));
                     studentCollege.setText(getIntent().getStringExtra("college_name"));
                 } else {
                     studentId.setText(userPrefs.getString("student_id", ""));
                     studentDept.setText(userPrefs.getString("department", ""));
-                    studentCourse.setText(userPrefs.getString("program", ""));
                     studentYearSem.setText(userPrefs.getString("year", ""));
                     studentCollege.setText(userPrefs.getString("college_name", ""));
                 }
@@ -471,7 +468,6 @@ public class ProfileActivity extends AppCompatActivity {
             if (currentRole.equalsIgnoreCase("Student")) {
                 updates.put("student_id", studentId.getText().toString().trim());
                 updates.put("department", studentDept.getText().toString().trim());
-                updates.put("program", studentCourse.getText().toString().trim());
                 updates.put("year", studentYearSem.getText().toString().trim());
                 updates.put("college_name", studentCollege.getText().toString().trim());
             } else if (currentRole.equalsIgnoreCase("Faculty")) {
@@ -579,7 +575,6 @@ public class ProfileActivity extends AppCompatActivity {
             if (currentRole.equalsIgnoreCase("Student")) {
                 editor.putString("student_id", studentId.getText().toString());
                 editor.putString("department", studentDept.getText().toString());
-                editor.putString("program", studentCourse.getText().toString());
                 editor.putString("year", studentYearSem.getText().toString());
                 editor.putString("college_name", studentCollege.getText().toString());
             } else if (currentRole.equalsIgnoreCase("Admin") || currentRole.equalsIgnoreCase("Administrator")) {

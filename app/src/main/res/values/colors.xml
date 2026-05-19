@@ -51,4 +51,6 @@
     <color name="status_resolved_light">#C8E6C9</color>
 
     <color name="orange_accent">#FF6F00</color>
+
+    <color name="teal_progress">#009688</color>
 </resources>

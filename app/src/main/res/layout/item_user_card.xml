@@ -7,6 +7,7 @@
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
+    app:cardBackgroundColor="?attr/colorSurface"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground">
@@ -38,7 +39,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="User Name"
-                android:textColor="#333"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -48,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="ID: 2024001"
-                android:textColor="#666"
+                android:textColor="?android:attr/textColorSecondary"
                 android:textSize="14sp" />
 
             <TextView
@@ -66,7 +67,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/ic_media_play"
-            app:tint="#CCC" />
+            app:tint="?android:attr/textColorSecondary" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

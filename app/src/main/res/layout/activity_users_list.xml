@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F2F5"
+    android:background="?android:attr/windowBackground"
     tools:context=".UsersListActivity">
 
     <!-- Header Section -->
@@ -13,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="64dp"
         app:cardElevation="2dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent">
 
         <RelativeLayout
@@ -26,7 +27,7 @@
                 android:layout_centerVertical="true"
                 android:layout_alignParentStart="true"
                 android:text="Users Directory"
-                android:textColor="#333"
+                android:textColor="?attr/colorOnSurface"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -48,7 +49,7 @@
                     android:focusable="true"
                     android:padding="6dp"
                     android:layout_marginEnd="8dp"
-                    app:tint="#455A64" />
+                    app:tint="?attr/colorPrimary" />
 
                 <ImageView
                     android:id="@+id/backBtn"
@@ -59,7 +60,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:padding="6dp"
-                    app:tint="#455A64" />
+                    app:tint="?attr/colorPrimary" />
             </LinearLayout>
 
         </RelativeLayout>
@@ -73,22 +74,25 @@
         android:layout_margin="16dp"
         app:cardCornerRadius="12dp"
         app:cardElevation="2dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintTop_toBottomOf="@id/topBar">
 
         <EditText
             android:id="@+id/searchUsers"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="@android:color/transparent"
+            android:background="@drawable/edit_text_bg_theme"
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
             android:hint="Search by Name or ID"
             android:paddingHorizontal="16dp"
             android:textSize="15sp"
-            android:textColor="?android:attr/textColorPrimary" />
+            android:textColor="?attr/colorOnSurface"
+            android:textColorHint="?attr/colorOnSurfaceVariant"
+            app:drawableTint="?attr/colorPrimary" />
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Main Content Card (Full Screen List) -->
+    <!-- Main Content Card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -96,6 +100,7 @@
         android:layout_marginBottom="16dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchCard">
 
@@ -129,7 +134,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="No students found in database"
-        android:textColor="#888"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

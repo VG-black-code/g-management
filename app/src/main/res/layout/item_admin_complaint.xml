@@ -16,7 +16,7 @@
         android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:text="Student Name"
-        android:textColor="#333"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="12sp" />
 
     <TextView
@@ -24,7 +24,7 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="CMP001"
-        android:textColor="#555"
+        android:textColor="?android:attr/textColorSecondary"
         android:textSize="12sp" />
 
     <TextView
@@ -32,7 +32,7 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="Hostel"
-        android:textColor="#555"
+        android:textColor="?android:attr/textColorSecondary"
         android:textSize="12sp" />
 
     <TextView
@@ -40,7 +40,7 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="01/01/2024"
-        android:textColor="#555"
+        android:textColor="?android:attr/textColorSecondary"
         android:textSize="12sp" />
 
     <TextView
@@ -48,7 +48,7 @@
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:text="Pending"
-        android:textColor="#555"
+        android:textColor="?android:attr/textColorPrimary"
         android:textSize="12sp"
         android:textStyle="bold" />
 
@@ -110,7 +110,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            app:tint="@android:color/holo_blue_light" />
+            app:tint="?attr/colorPrimary" />
 
     </LinearLayout>
 

@@ -150,13 +150,11 @@ public class UserDetailsActivity extends AppCompatActivity {
                 if (isViewOnly) {
                     addDetailRow(container, "Student ID", getIntent().getStringExtra("student_id"));
                     addDetailRow(container, "Department", getIntent().getStringExtra("department"));
-                    addDetailRow(container, "Course / Program", getIntent().getStringExtra("program"));
                     addDetailRow(container, "Academic Year", getIntent().getStringExtra("year"));
                     addDetailRow(container, "College Name", getIntent().getStringExtra("college_name"));
                 } else {
                     addDetailRow(container, "Student ID", userPrefs.getString("student_id", "N/A"));
                     addDetailRow(container, "Department", userPrefs.getString("department", "N/A"));
-                    addDetailRow(container, "Course / Program", userPrefs.getString("program", "N/A"));
                     addDetailRow(container, "Academic Year", userPrefs.getString("year", "N/A"));
                     addDetailRow(container, "College Name", userPrefs.getString("college_name", "N/A"));
                 }

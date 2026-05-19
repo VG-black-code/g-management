@@ -1,133 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="?attr/colorSurface">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Complaint ID"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailId"
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="CMP001"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
+            android:overScrollMode="never">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Raised By"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Student Name"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="32dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Category"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailCategory"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Hostel"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+                <!-- Centered Purple Bell/Icon -->
+                <ImageView
+                    android:id="@+id/notifIcon"
+                    android:layout_width="50dp"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="20dp"
+                    android:src="@android:drawable/ic_popup_reminder"
+                    app:tint="?attr/colorPrimary" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Problem Type"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailProblem"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Electricity"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+                <!-- Centered Title (Problem Type) -->
+                <TextView
+                    android:id="@+id/detailProblem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Complaint Title"
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Description"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Description goes here..."
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+                <!-- Centered Message (Description) -->
+                <TextView
+                    android:id="@+id/detailDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="This is the detailed description of your complaint."
+                    android:textAlignment="center"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="16sp"
+                    android:lineSpacingExtra="6dp"
+                    android:layout_marginBottom="20dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Location"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailLocation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Room 101"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+                <!-- Additional Centered Info (ID & Status) -->
+                <TextView
+                    android:id="@+id/detailId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="CMP001"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="4dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Status"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pending"
-            android:textColor="#333"
-            android:textSize="16sp"
-            android:layout_marginBottom="12dp"/>
+                <TextView
+                    android:id="@+id/detailStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PENDING"
+                    android:textAllCaps="true"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Date &amp; Time"
-            android:textColor="#888"
-            android:textSize="12sp" />
-        <TextView
-            android:id="@+id/detailDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="2024-01-01 10:00"
-            android:textColor="#333"
-            android:textSize="16sp"/>
+                <!-- Optional Image below content -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/detailImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="20dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
 
-    </LinearLayout>
-</ScrollView>
+                <!-- Hidden elements to maintain Java compatibility -->
+                <TextView android:id="@+id/detailName" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailCategory" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailLocation" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailDate" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailRaisedDate" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <LinearLayout android:id="@+id/layoutProcessing" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone"><TextView android:id="@+id/detailProcessingDate" android:layout_width="0dp" android:layout_height="0dp" /></LinearLayout>
+                <LinearLayout android:id="@+id/layoutResolved" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone"><TextView android:id="@+id/detailResolvedDate" android:layout_width="0dp" android:layout_height="0dp" /></LinearLayout>
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- Top-Right Close Button -->
+        <ImageButton
+            android:id="@+id/btnClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Close"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="?attr/colorOnSurfaceVariant" />
+
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

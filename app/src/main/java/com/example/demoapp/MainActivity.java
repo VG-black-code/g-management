@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         ThemeHelper.applyTheme(this);
         super.onCreate(savedInstanceState);
         
-        // Automatic logout: Always clear login state on app start
+        // Automatic logout: Always clear login state on app start for testing
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         prefs.edit().putBoolean("is_logged_in", false).apply();
 
@@ -81,12 +81,13 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("user_id", "00000000-0000-0000-0000-000000000000");
         editor.putString("email", "admin@demo.com");
-        editor.putString("name", "Demo Administrator");
+        editor.putString("name", "Admin");
         editor.putString("role", "Admin");
+        editor.putString("access_token", SupabaseConfig.API_KEY); // Use API Key as fallback token
         editor.putBoolean("is_logged_in", true);
         editor.apply();
 
-        Toast.makeText(this, "Demo Admin Login Successful", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Admin Login Successful", Toast.LENGTH_SHORT).show();
         startActivity(new Intent(this, AdminDashboardActivity.class));
         finish();
     }

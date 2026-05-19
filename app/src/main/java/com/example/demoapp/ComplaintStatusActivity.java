@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.github.mikephil.charting.charts.BarChart;
@@ -120,14 +121,26 @@ public class ComplaintStatusActivity extends AppCompatActivity {
         ImageView itemImage = complaintView.findViewById(R.id.itemImage);
         TextView title = complaintView.findViewById(R.id.itemTitle);
         TextView room = complaintView.findViewById(R.id.itemRoom);
-        TextView status = complaintView.findViewById(R.id.itemStatus);
+        TextView statusTv = complaintView.findViewById(R.id.itemStatus);
         TextView date = complaintView.findViewById(R.id.itemDate);
         TextView processDate = complaintView.findViewById(R.id.itemProcessDate);
         TextView resolveDate = complaintView.findViewById(R.id.itemResolveDate);
 
         title.setText(issue.getProblemType());
         room.setText("Location: " + issue.getLocation());
-        status.setText("Status: " + issue.getStatus());
+        
+        String status = issue.getStatus();
+        statusTv.setText("Status: " + status);
+        
+        if (status != null) {
+            if (status.equalsIgnoreCase("Pending")) {
+                statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_pending));
+            } else if (status.equalsIgnoreCase("Processing")) {
+                statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_in_progress));
+            } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
+                statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_resolved));
+            }
+        }
         
         date.setText("Sent: " + formatDate(issue.getCreatedAt()));
 

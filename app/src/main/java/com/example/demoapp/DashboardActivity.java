@@ -503,7 +503,19 @@ public class DashboardActivity extends AppCompatActivity {
                 
                 title.setText(issue.getProblemType());
                 room.setText("Location: " + issue.getLocation());
-                statusTv.setText("Status: " + issue.getStatus());
+                
+                String status = issue.getStatus();
+                statusTv.setText("Status: " + status);
+                
+                if (status != null) {
+                    if (status.equalsIgnoreCase("Pending")) {
+                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_pending));
+                    } else if (status.equalsIgnoreCase("Processing")) {
+                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_in_progress));
+                    } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
+                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_resolved));
+                    }
+                }
                 
                 if (dateTv != null) {
                     dateTv.setText("Sent: " + formatDate(issue.getCreatedAt()));
@@ -514,23 +526,62 @@ public class DashboardActivity extends AppCompatActivity {
                 } else {
                     itemImage.setImageResource(android.R.drawable.ic_menu_gallery);
                 }
-                
-                if (issue.getStatus().equalsIgnoreCase("Resolved")) {
-                    statusTv.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-                } else if (issue.getStatus().equalsIgnoreCase("Processing")) {
-                    statusTv.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
-                }
 
-                view.setOnClickListener(v -> {
-                    Intent intent = new Intent(DashboardActivity.this, IssueDetailActivity.class);
-                    intent.putExtra("issue_data", new com.google.gson.Gson().toJson(issue));
-                    startActivity(intent);
-                });
+                view.setOnClickListener(v -> showComplaintDetailDialog(issue));
                 
                 complaintList.addView(view);
                 count++;
             }
         }
+    }
+
+    private void showComplaintDetailDialog(Issue issue) {
+        View view = getLayoutInflater().inflate(R.layout.dialog_complaint_details, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
+
+        ((TextView) view.findViewById(R.id.detailId)).setText("CMP" + issue.getId());
+        ((TextView) view.findViewById(R.id.detailProblem)).setText(issue.getProblemType());
+        ((TextView) view.findViewById(R.id.detailDescription)).setText(issue.getDescription());
+        
+        TextView statusTv = view.findViewById(R.id.detailStatus);
+        String status = issue.getStatus();
+        statusTv.setText(status);
+
+        ImageView iconView = view.findViewById(R.id.notifIcon);
+
+        if (status != null) {
+            int color;
+            if (status.equalsIgnoreCase("Pending")) {
+                color = ContextCompat.getColor(this, R.color.status_pending);
+            } else if (status.equalsIgnoreCase("Processing")) {
+                color = ContextCompat.getColor(this, R.color.status_in_progress);
+            } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
+                color = ContextCompat.getColor(this, R.color.status_resolved);
+            } else {
+                color = ContextCompat.getColor(this, R.color.blue_primary);
+            }
+            statusTv.setTextColor(color);
+            if (iconView != null) iconView.setColorFilter(color);
+        }
+
+        ImageView detailImage = view.findViewById(R.id.detailImage);
+        if (detailImage != null) {
+            if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
+                detailImage.setVisibility(View.VISIBLE);
+                Glide.with(this).load(issue.getPhotoUrl()).placeholder(android.R.drawable.ic_menu_gallery).into(detailImage);
+                detailImage.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, FullScreenImageActivity.class);
+                    intent.putExtra("image_url", issue.getPhotoUrl());
+                    startActivity(intent);
+                });
+            } else {
+                detailImage.setVisibility(View.GONE);
+            }
+        }
+
+        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
     }
 
     private String formatDate(String isoString) {

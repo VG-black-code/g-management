@@ -50,62 +50,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/about_welcome"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="14sp" />
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_marginBottom="16dp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:text="@string/about_description"
                     android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="14sp" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:background="#F0F7FF"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_compass"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:text="Objective:"
-                            android:textColor="?android:attr/textColorPrimary"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="The objective of Smartify is to ensure transparency, faster resolution, and improved communication through smart notifications."
-                        android:textColor="?android:attr/textColorSecondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Our goal is to deliver a smooth, user-friendly, and efficient notification and grievance handling experience."
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="4dp" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnClose"
@@ -113,7 +70,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="20dp"
                     android:text="Close" />
             </LinearLayout>
         </ScrollView>

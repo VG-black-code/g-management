@@ -12,7 +12,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
@@ -94,11 +96,10 @@ public class MyIssuesActivity extends AppCompatActivity {
         
         String authHeader = token.startsWith("Bearer ") ? token : "Bearer " + token;
 
-        // Use the centralized stable API instance
         SupabaseApi api = SupabaseConfig.getApi();
-
         Map<String, String> filters = new HashMap<>();
         filters.put("user_id", "eq." + currentUserId);
+        filters.put("order", "id.desc");
 
         api.getIssues(SupabaseConfig.API_KEY, authHeader, filters)
                 .enqueue(new Callback<List<Issue>>() {
@@ -110,14 +111,11 @@ public class MyIssuesActivity extends AppCompatActivity {
                         if (response.isSuccessful() && response.body() != null) {
                             displayIssues(response.body());
                         } else if (response.code() == 401) {
-                            Log.e(TAG, "Unauthorized: Session expired");
                             Toast.makeText(MyIssuesActivity.this, "Session expired. Please login again.", Toast.LENGTH_LONG).show();
                             userPrefs.edit().putBoolean("is_logged_in", false).apply();
                             startActivity(new Intent(MyIssuesActivity.this, MainActivity.class));
                             finishAffinity();
                         } else {
-                            Log.e(TAG, "Fetch Failed: " + response.code());
-                            Toast.makeText(MyIssuesActivity.this, "Failed to load issues: " + response.code(), Toast.LENGTH_SHORT).show();
                             noIssuesText.setVisibility(View.VISIBLE);
                         }
                     }
@@ -126,8 +124,6 @@ public class MyIssuesActivity extends AppCompatActivity {
                     public void onFailure(Call<List<Issue>> call, Throwable t) {
                         if (progressBar != null) progressBar.setVisibility(View.GONE);
                         if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
-                        Log.e(TAG, "Error: " + t.getMessage());
-                        Toast.makeText(MyIssuesActivity.this, "Network Error: Check internet or Supabase project status", Toast.LENGTH_SHORT).show();
                         noIssuesText.setVisibility(View.VISIBLE);
                         noIssuesText.setText("Failed to connect to server.");
                     }
@@ -143,77 +139,115 @@ public class MyIssuesActivity extends AppCompatActivity {
         }
 
         noIssuesText.setVisibility(View.GONE);
-        for (int i = issues.size() - 1; i >= 0; i--) {
-            Issue issue = issues.get(i);
-            View complaintView = LayoutInflater.from(this).inflate(R.layout.item_complaint, issuesContainer, false);
+        for (Issue issue : issues) {
+            View view = LayoutInflater.from(this).inflate(R.layout.item_complaint, issuesContainer, false);
             
-            ImageView itemImage = complaintView.findViewById(R.id.itemImage);
-            TextView title = complaintView.findViewById(R.id.itemTitle);
-            TextView room = complaintView.findViewById(R.id.itemRoom);
-            TextView status = complaintView.findViewById(R.id.itemStatus);
-            TextView date = complaintView.findViewById(R.id.itemDate);
-            TextView processDate = complaintView.findViewById(R.id.itemProcessDate);
-            TextView resolveDate = complaintView.findViewById(R.id.itemResolveDate);
+            ImageView itemImage = view.findViewById(R.id.itemImage);
+            TextView title = view.findViewById(R.id.itemTitle);
+            TextView room = view.findViewById(R.id.itemRoom);
+            TextView status = view.findViewById(R.id.itemStatus);
+            TextView date = view.findViewById(R.id.itemDate);
 
             title.setText(issue.getProblemType());
             room.setText("Location: " + issue.getLocation());
-            status.setText("Status: " + issue.getStatus());
             
-            date.setText("Sent: " + formatDate(issue.getCreatedAt()));
-
-            if (issue.getProcessingAt() != null) {
-                processDate.setVisibility(View.VISIBLE);
-                processDate.setText("Proc: " + formatDate(issue.getProcessingAt()));
+            String statusText = issue.getStatus();
+            status.setText("Status: " + statusText);
+            
+            if (statusText != null) {
+                if (statusText.equalsIgnoreCase("Pending")) {
+                    status.setTextColor(ContextCompat.getColor(this, R.color.status_pending));
+                } else if (statusText.equalsIgnoreCase("Processing")) {
+                    status.setTextColor(ContextCompat.getColor(this, R.color.status_in_progress));
+                } else if (statusText.equalsIgnoreCase("Resolved")) {
+                    status.setTextColor(ContextCompat.getColor(this, R.color.status_resolved));
+                }
             }
-
-            if (issue.getResolvedAt() != null) {
-                resolveDate.setVisibility(View.VISIBLE);
-                resolveDate.setText("Res: " + formatDate(issue.getResolvedAt()));
-            }
+            
+            date.setText("Sent: " + formatDateShort(issue.getCreatedAt()));
 
             if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
                 Glide.with(this).load(issue.getPhotoUrl()).into(itemImage);
-                itemImage.setOnClickListener(v -> {
-                    Intent fullScreenIntent = new Intent(this, FullScreenImageActivity.class);
-                    fullScreenIntent.putExtra("image_url", issue.getPhotoUrl());
-                    startActivity(fullScreenIntent);
-                });
             } else {
                 itemImage.setImageResource(android.R.drawable.ic_menu_gallery);
             }
 
-            complaintView.setOnClickListener(v -> {
-                Intent intent = new Intent(MyIssuesActivity.this, IssueDetailActivity.class);
-                intent.putExtra("issue_data", new Gson().toJson(issue));
-                startActivity(intent);
-            });
-
-            issuesContainer.addView(complaintView);
+            view.setOnClickListener(v -> showComplaintDetailDialog(issue));
+            issuesContainer.addView(view);
         }
     }
 
-    private String formatDate(String isoString) {
-        if (isoString == null || isoString.isEmpty()) return "";
+    private void showComplaintDetailDialog(Issue issue) {
+        View view = getLayoutInflater().inflate(R.layout.dialog_complaint_details, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
+
+        ((TextView) view.findViewById(R.id.detailId)).setText("CMP" + issue.getId());
+        ((TextView) view.findViewById(R.id.detailProblem)).setText(issue.getProblemType());
+        ((TextView) view.findViewById(R.id.detailDescription)).setText(issue.getDescription());
+        
+        TextView statusTv = view.findViewById(R.id.detailStatus);
+        String status = issue.getStatus();
+        statusTv.setText(status);
+
+        ImageView iconView = view.findViewById(R.id.notifIcon);
+
+        if (status != null) {
+            int color;
+            if (status.equalsIgnoreCase("Pending")) {
+                color = ContextCompat.getColor(this, R.color.status_pending);
+            } else if (status.equalsIgnoreCase("Processing")) {
+                color = ContextCompat.getColor(this, R.color.status_in_progress);
+            } else if (status.equalsIgnoreCase("Resolved")) {
+                color = ContextCompat.getColor(this, R.color.status_resolved);
+            } else {
+                color = ContextCompat.getColor(this, R.color.lavender_primary);
+            }
+            statusTv.setTextColor(color);
+            if (iconView != null) iconView.setColorFilter(color);
+        }
+
+        ImageView detailImage = view.findViewById(R.id.detailImage);
+        if (detailImage != null) {
+            if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
+                detailImage.setVisibility(View.VISIBLE);
+                Glide.with(this).load(issue.getPhotoUrl()).placeholder(android.R.drawable.ic_menu_gallery).into(detailImage);
+                detailImage.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, FullScreenImageActivity.class);
+                    intent.putExtra("image_url", issue.getPhotoUrl());
+                    startActivity(intent);
+                });
+            } else {
+                detailImage.setVisibility(View.GONE);
+            }
+        }
+
+        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+    }
+
+    private String formatFullDateTime(String isoString) {
+        if (isoString == null || isoString.isEmpty()) return "-";
         try {
-            String cleanIso = isoString;
-            if (cleanIso.contains(".")) {
-                cleanIso = cleanIso.substring(0, cleanIso.indexOf("."));
-            }
-            if (cleanIso.endsWith("Z")) {
-                cleanIso = cleanIso.substring(0, cleanIso.length() - 1);
-            }
-            
-            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+            String cleanIso = isoString.endsWith("Z") ? isoString.substring(0, isoString.length() - 1) : isoString;
+            String pattern = cleanIso.contains(".") ? "yyyy-MM-dd'T'HH:mm:ss.SSS" : "yyyy-MM-dd'T'HH:mm:ss";
+            SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.getDefault());
             inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = inputFormat.parse(cleanIso);
-            
-            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault());
-            outputFormat.setTimeZone(TimeZone.getDefault());
-            return outputFormat.format(date);
-        } catch (Exception e) {
-            Log.e(TAG, "Date parse error: " + isoString);
-            return isoString;
-        }
+            return new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date);
+        } catch (Exception e) { return isoString; }
+    }
+
+    private String formatDateShort(String isoString) {
+        if (isoString == null || isoString.isEmpty()) return "N/A";
+        try {
+            String cleanIso = isoString.endsWith("Z") ? isoString.substring(0, isoString.length() - 1) : isoString;
+            String pattern = cleanIso.contains(".") ? "yyyy-MM-dd'T'HH:mm:ss.SSS" : "yyyy-MM-dd'T'HH:mm:ss";
+            SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+            inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = inputFormat.parse(cleanIso);
+            return new SimpleDateFormat("MMM dd", Locale.getDefault()).format(date);
+        } catch (Exception e) { return isoString; }
     }
 
     @Override

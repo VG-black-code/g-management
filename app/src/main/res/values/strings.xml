@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Smartify</string>
+    <string name="app_name">SMARTIFY</string>
     <string name="welcome_to_smart_notify">Welcome to Smartify</string>
     <string name="log_in_to_raise_an_issue">Log in to raise an issue</string>
-    <string name="college_email_student_id">College Email / Student ID</string>
+    <string name="college_email_student_id">College Email / ID</string>
     <string name="password">Password</string>
     <string name="forgot_password">Forgot Password?</string>
     <string name="log_in">LOG IN</string>
@@ -62,8 +62,10 @@
     <string name="delete">Delete</string>
     <string name="show_password">Show Password</string>
 
-    <string name="about_welcome">Welcome to Smartify.</string>
-    <string name="about_description">Smartify is designed to provide a simple and effective platform for users to submit and track their notifications efficiently.</string>
+    <string name="about_welcome">Snap it, Submit, Solve it.... 😉</string>
+    <string name="about_description">A Smartify is a digital platform designed for students and staff to submit, track, and resolve campus-related issues—such as hostels, food, or administration—digitally rather than through paper-based methods. It provides real-time tracking, automated alerts, and a secure, transparent, and centralized system for improving the student experience.</string>
 
     <string name="admin_title">Admin</string>
+
+    <string name="tagline">· YOUR VOICE · OUR ACTION · BETTER CAMPUS ·</string>
 </resources>

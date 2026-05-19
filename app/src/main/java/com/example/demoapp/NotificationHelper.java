@@ -15,7 +15,7 @@ public class NotificationHelper {
     private static final String CHANNEL_NAME = "Complaint Status Updates";
     private static final String CHANNEL_DESC = "Notifications for status changes on your complaints";
 
-    public static void showNotification(Context context, String title, String message) {
+    public static void showNotification(Context context, String title, String message, Long issueId) {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -26,9 +26,14 @@ public class NotificationHelper {
             notificationManager.createNotificationChannel(channel);
         }
 
+        // Pass the issueId to NotificationsActivity so it can auto-open the details
         Intent intent = new Intent(context, NotificationsActivity.class);
+        if (issueId != null && issueId != 0) {
+            intent.putExtra("target_issue_id", issueId);
+        }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 
+        
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, (int)System.currentTimeMillis(), intent, 
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -37,6 +42,7 @@ public class NotificationHelper {
                 .setSmallIcon(android.R.drawable.stat_notify_chat)
                 .setContentTitle(title)
                 .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent)

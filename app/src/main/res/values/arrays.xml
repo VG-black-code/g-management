@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="problem_categories">
+        <item>Classroom</item>
+        <item>Campus Facilities</item>
+        <item>Hostel</item>
+        <item>Lab / IT</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="classroom_problems">
+        <item>AC/Fan not working</item>
+        <item>Light not working</item>
+        <item>Furniture broken</item>
+        <item>Projector issue</item>
+        <item>Cleaning required</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="campus_facilities_problems">
+        <item>Water cooler issue</item>
+        <item>Restroom cleaning</item>
+        <item>Garden maintenance</item>
+        <item>Parking issue</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="hostel_problems">
+        <item>Room cleaning</item>
+        <item>Plumbing issue</item>
+        <item>Electrical issue</item>
+        <item>Wi-Fi issue</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="lab_it_problems">
+        <item>System not working</item>
+        <item>Software issue</item>
+        <item>Internet connectivity</item>
+        <item>Hardware issue</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="others_problems">
+        <item>General Issue</item>
+    </string-array>
+
+    <string-array name="locations">
+        <item>A Block</item>
+        <item>B Block</item>
+        <item>C Block</item>
+        <item>Library</item>
+        <item>Auditorium</item>
+        <item>Cafeteria</item>
+        <item>Ground</item>
+    </string-array>
+</resources>

@@ -12,9 +12,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,10 +24,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import okhttp3.MediaType;
@@ -42,10 +45,12 @@ public class ComplaintActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
     private static final int CAMERA_REQUEST = 2;
 
-    private AutoCompleteTextView categoryDropdown, priorityDropdown;
-    private TextInputEditText locationEdit, descriptionEdit;
+    private AutoCompleteTextView categoryDropdown, problemTypeDropdown, locationDropdown;
+    private TextInputEditText descriptionEdit, subLocationEdit;
+    private EditText studentInfoEdit;
     private ImageView selectedImage;
-    private Button uploadImageBtn, takePhotoBtn, submitBtn;
+    private TextView imageStatusText;
+    private MaterialButton uploadImageBtn, submitBtn;
     private ProgressBar progressBar;
     private Uri imageUri;
     private Bitmap cameraBitmap;
@@ -60,20 +65,26 @@ public class ComplaintActivity extends AppCompatActivity {
         userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
 
         // Initialize Views
+        studentInfoEdit = findViewById(R.id.studentInfo);
         categoryDropdown = findViewById(R.id.categoryDropdown);
-        priorityDropdown = findViewById(R.id.priorityDropdown);
-        locationEdit = findViewById(R.id.location);
+        problemTypeDropdown = findViewById(R.id.problemTypeDropdown);
+        locationDropdown = findViewById(R.id.locationDropdown);
         descriptionEdit = findViewById(R.id.description);
+        subLocationEdit = findViewById(R.id.subLocation);
         selectedImage = findViewById(R.id.selectedImage);
+        imageStatusText = findViewById(R.id.imageStatusText);
         uploadImageBtn = findViewById(R.id.uploadImageBtn);
-        takePhotoBtn = findViewById(R.id.takePhotoBtn);
         submitBtn = findViewById(R.id.submitBtn);
         progressBar = findViewById(R.id.progressBar);
 
+        // Set Student Info (Name and Registration Student ID)
+        String studentName = userPrefs.getString("name", "Unknown");
+        String studentRegId = userPrefs.getString("student_id", "N/A");
+        studentInfoEdit.setText(studentName + " / " + studentRegId);
+
         setupDropdowns();
 
-        uploadImageBtn.setOnClickListener(v -> openGallery());
-        takePhotoBtn.setOnClickListener(v -> checkCameraPermission());
+        uploadImageBtn.setOnClickListener(v -> showImageSourceDialog());
         submitBtn.setOnClickListener(v -> validateAndSubmit());
 
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
@@ -84,6 +95,7 @@ public class ComplaintActivity extends AppCompatActivity {
             String[] categories = getResources().getStringArray(R.array.problem_categories);
             if (categoryIndex < categories.length) {
                 categoryDropdown.setText(categories[categoryIndex], false);
+                updateProblemTypeDropdown(categories[categoryIndex]);
             }
         }
     }
@@ -93,9 +105,52 @@ public class ComplaintActivity extends AppCompatActivity {
         ArrayAdapter<String> catAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categories);
         categoryDropdown.setAdapter(catAdapter);
 
-        String[] priorities = {"Low", "Medium", "High", "Urgent"};
-        ArrayAdapter<String> priAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, priorities);
-        priorityDropdown.setAdapter(priAdapter);
+        categoryDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedCategory = (String) parent.getItemAtPosition(position);
+            updateProblemTypeDropdown(selectedCategory);
+        });
+
+        String[] locations = getResources().getStringArray(R.array.locations);
+        ArrayAdapter<String> locAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, locations);
+        locationDropdown.setAdapter(locAdapter);
+    }
+
+    private void updateProblemTypeDropdown(String category) {
+        int arrayResId;
+        switch (category) {
+            case "Classroom":
+                arrayResId = R.array.classroom_problems;
+                break;
+            case "Campus Facilities":
+                arrayResId = R.array.campus_facilities_problems;
+                break;
+            case "Hostel":
+                arrayResId = R.array.hostel_problems;
+                break;
+            case "Lab / IT":
+                arrayResId = R.array.lab_it_problems;
+                break;
+            case "Others":
+            default:
+                arrayResId = R.array.others_problems;
+                break;
+        }
+
+        String[] problemTypes = getResources().getStringArray(arrayResId);
+        ArrayAdapter<String> probAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, problemTypes);
+        problemTypeDropdown.setAdapter(probAdapter);
+        problemTypeDropdown.setText("", false); // Clear previous selection
+    }
+
+    private void showImageSourceDialog() {
+        String[] options = {"Gallery", "Camera"};
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Select Image Source")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) openGallery();
+                    else checkCameraPermission();
+                })
+                .show();
     }
 
     private void openGallery() {
@@ -132,11 +187,13 @@ public class ComplaintActivity extends AppCompatActivity {
                 imageUri = data.getData();
                 selectedImage.setImageURI(imageUri);
                 selectedImage.setVisibility(View.VISIBLE);
+                imageStatusText.setText("Image selected!");
                 cameraBitmap = null;
             } else if (requestCode == CAMERA_REQUEST) {
                 cameraBitmap = (Bitmap) data.getExtras().get("data");
                 selectedImage.setImageBitmap(cameraBitmap);
                 selectedImage.setVisibility(View.VISIBLE);
+                imageStatusText.setText("Image selected!");
                 imageUri = null;
             }
         }
@@ -144,30 +201,32 @@ public class ComplaintActivity extends AppCompatActivity {
 
     private void validateAndSubmit() {
         String category = categoryDropdown.getText().toString();
-        String priority = priorityDropdown.getText().toString();
-        String location = locationEdit.getText().toString().trim();
+        String problemType = problemTypeDropdown.getText().toString();
+        String mainLocation = locationDropdown.getText().toString();
+        String subLocation = subLocationEdit.getText().toString().trim();
         String desc = descriptionEdit.getText().toString().trim();
 
-        if (category.isEmpty() || priority.isEmpty() || location.isEmpty() || desc.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        if (category.isEmpty() || problemType.isEmpty() || mainLocation.isEmpty() || desc.isEmpty()) {
+            Toast.makeText(this, "Please fill all mandatory fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        submitComplaint(category, priority, location, desc);
+        String combinedLocation = mainLocation + (subLocation.isEmpty() ? "" : " - " + subLocation);
+        submitComplaint(category, problemType, combinedLocation, desc);
     }
 
-    private void submitComplaint(String category, String priority, String location, String desc) {
+    private void submitComplaint(String category, String problemType, String location, String desc) {
         progressBar.setVisibility(View.VISIBLE);
         submitBtn.setEnabled(false);
 
         if (imageUri != null || cameraBitmap != null) {
-            uploadImageAndSubmit(category, priority, location, desc);
+            uploadImageAndSubmit(category, problemType, location, desc);
         } else {
-            postToDatabase(category, priority, location, desc, null);
+            postToDatabase(category, problemType, location, desc, null);
         }
     }
 
-    private void uploadImageAndSubmit(String category, String priority, String location, String desc) {
+    private void uploadImageAndSubmit(String category, String problemType, String location, String desc) {
         try {
             byte[] imageData;
             if (imageUri != null) {
@@ -192,23 +251,23 @@ public class ComplaintActivity extends AppCompatActivity {
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if (response.isSuccessful()) {
                                 String publicUrl = SupabaseConfig.URL + "storage/v1/object/public/" + bucket + "/" + path;
-                                postToDatabase(category, priority, location, desc, publicUrl);
+                                postToDatabase(category, problemType, location, desc, publicUrl);
                             } else {
                                 Log.e(TAG, "Upload failed: " + response.code());
-                                postToDatabase(category, priority, location, desc, null);
+                                postToDatabase(category, problemType, location, desc, null);
                             }
                         }
 
                         @Override
                         public void onFailure(Call<ResponseBody> call, Throwable t) {
                             Log.e(TAG, "Upload Error: " + t.getMessage());
-                            postToDatabase(category, priority, location, desc, null);
+                            postToDatabase(category, problemType, location, desc, null);
                         }
                     });
 
         } catch (IOException e) {
             e.printStackTrace();
-            postToDatabase(category, priority, location, desc, null);
+            postToDatabase(category, problemType, location, desc, null);
         }
     }
 
@@ -218,27 +277,32 @@ public class ComplaintActivity extends AppCompatActivity {
         return stream.toByteArray();
     }
 
-    private void postToDatabase(String category, String priority, String location, String desc, String photoUrl) {
+    private void postToDatabase(String category, String problemType, String location, String desc, String photoUrl) {
         Issue issue = new Issue();
-        issue.setProblemType(category);
-        issue.setPriority(priority);
+        issue.setCategory(category);
+        issue.setProblemType(problemType);
         issue.setLocation(location);
         issue.setDescription(desc);
         issue.setPhotoUrl(photoUrl);
         issue.setStatus("Pending");
-        issue.setUserName(userPrefs.getString("name", "Unknown"));
+        
+        String studentName = userPrefs.getString("name", "Unknown");
+        String studentId = userPrefs.getString("student_id", "");
+        issue.setUserName(studentName + " / " + studentId);
+        
         issue.setUserId(userPrefs.getString("user_id", ""));
 
         SupabaseApi api = SupabaseConfig.getApi();
         String authHeader = "Bearer " + userPrefs.getString("access_token", "");
 
-        api.insertIssue(SupabaseConfig.API_KEY, authHeader, issue).enqueue(new Callback<Void>() {
+        api.insertIssue(SupabaseConfig.API_KEY, authHeader, issue).enqueue(new Callback<List<Issue>>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<List<Issue>> call, Response<List<Issue>> response) {
                 progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful()) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    Issue savedIssue = response.body().get(0);
                     Toast.makeText(ComplaintActivity.this, "Complaint Submitted Successfully", Toast.LENGTH_LONG).show();
-                    sendNotificationToAdmin(category, location);
+                    sendNotificationToAdmin(category, problemType, location, savedIssue.getId());
                     finish();
                 } else {
                     submitBtn.setEnabled(true);
@@ -247,7 +311,7 @@ public class ComplaintActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(Call<List<Issue>> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 submitBtn.setEnabled(true);
                 Toast.makeText(ComplaintActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
@@ -255,12 +319,14 @@ public class ComplaintActivity extends AppCompatActivity {
         });
     }
 
-    private void sendNotificationToAdmin(String category, String location) {
+    private void sendNotificationToAdmin(String category, String problemType, String location, Long issueId) {
+        String studentName = userPrefs.getString("name", "A student");
         Notification notification = new Notification();
         notification.setTitle("New Complaint Filed");
-        notification.setMessage("A new " + category + " issue has been reported at " + location);
+        notification.setMessage(studentName + " reported: " + problemType + " in " + category + " at " + location);
         notification.setUserName("Admin"); // Target admin
         notification.setRead(false);
+        notification.setIssueId(issueId);
 
         SupabaseApi api = SupabaseConfig.getApi();
         String authHeader = "Bearer " + userPrefs.getString("access_token", "");
@@ -268,7 +334,7 @@ public class ComplaintActivity extends AppCompatActivity {
         api.sendNotification(SupabaseConfig.API_KEY, authHeader, notification).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                Log.d(TAG, "Admin notified");
+                Log.d(TAG, "Admin notified with issue ID: " + issueId);
             }
 
             @Override

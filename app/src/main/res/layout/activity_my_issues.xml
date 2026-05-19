@@ -26,14 +26,14 @@
         app:layout_constraintBottom_toBottomOf="@id/headerBg"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/headerBg"
-        app:tint="#4CAF50" />
+        app:tint="?attr/colorOnPrimary" />
 
     <TextView
         android:id="@+id/pageTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="My Issues"
-        android:textColor="@android:color/white"
+        android:textColor="?attr/colorOnPrimary"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/headerBg"
@@ -54,7 +54,7 @@
         app:layout_constraintBottom_toBottomOf="@id/headerBg"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/headerBg"
-        app:tint="@android:color/white" />
+        app:tint="?attr/colorOnPrimary" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"

@@ -1,12 +1,14 @@
 package com.example.demoapp;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
-import android.media.PlaybackParams;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
-import android.widget.VideoView;
+import android.view.animation.LinearInterpolator;
+import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
@@ -15,7 +17,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Hide status bar and navigation bar for true full screen
+        // Fullscreen immersive mode
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -26,40 +28,25 @@ public class SplashActivity extends AppCompatActivity {
                 
         setContentView(R.layout.activity_splash);
 
-        VideoView videoView = findViewById(R.id.videoView);
+        ImageView logoOuter = findViewById(R.id.logo_outer);
         
-        String videoPath = "android.resource://" + getPackageName() + "/raw/intro_video";
-        Uri uri = Uri.parse(videoPath);
-        
-        videoView.setVideoURI(uri);
+        // 1. Spinning Animation for Outer Sections using ObjectAnimator
+        // Rotates 360 degrees infinitely
+        ObjectAnimator rotateAnim = ObjectAnimator.ofFloat(logoOuter, "rotation", 0f, 360f);
+        rotateAnim.setDuration(4000); // Speed of rotation
+        rotateAnim.setInterpolator(new LinearInterpolator());
+        rotateAnim.setRepeatCount(ValueAnimator.INFINITE);
+        rotateAnim.start();
 
-        videoView.setOnPreparedListener(mp -> {
-            // Adjust speed (little fast)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                PlaybackParams params = new PlaybackParams();
-                params.setSpeed(1.2f); // 20% faster
-                mp.setPlaybackParams(params);
-            }
-            // Set video scaling to fill screen vertically (Stretch to fill)
-            mp.setVideoScalingMode(android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-            videoView.start();
-        });
-
-        videoView.setOnCompletionListener(mp -> {
-            navigateToMain();
-        });
-
-        videoView.setOnErrorListener((mp, what, extra) -> {
-            navigateToMain();
-            return true;
-        });
+        // 2. Fast transition to MainActivity (After 3 seconds as requested)
+        new Handler(Looper.getMainLooper()).postDelayed(this::navigateToMain, 3000);
     }
 
     private void navigateToMain() {
         Intent intent = new Intent(SplashActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
-        // Custom smooth fade transition
+        // Modern smooth fade transition
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 }

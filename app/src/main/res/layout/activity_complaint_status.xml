@@ -12,15 +12,19 @@
         android:orientation="horizontal"
         android:padding="16dp"
         android:gravity="center_vertical"
+        android:background="?attr/colorPrimary"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
+        <ImageView
             android:id="@+id/backBtn"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            app:icon="@android:drawable/ic_menu_revert" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="?attr/colorOnPrimary" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -28,6 +32,7 @@
             android:text="Complaint Status"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:textColor="?attr/colorOnPrimary"
             android:layout_marginStart="16dp"/>
     </LinearLayout>
 
@@ -47,7 +52,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Overview of your complaints"
-                android:alpha="0.6"
+                android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginBottom="16dp"/>
 
             <LinearLayout
@@ -67,8 +72,9 @@
                     android:focusable="true"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#FF9800">
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/status_pending">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -82,12 +88,13 @@
                             android:text="0"
                             android:textSize="24sp"
                             android:textStyle="bold"
-                            android:textColor="#FF9800"/>
+                            android:textColor="@color/status_pending"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Pending"
                             android:textStyle="bold"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="12sp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -103,8 +110,9 @@
                     android:focusable="true"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#2196F3">
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/status_in_progress">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -118,12 +126,13 @@
                             android:text="0"
                             android:textSize="24sp"
                             android:textStyle="bold"
-                            android:textColor="#2196F3"/>
+                            android:textColor="@color/status_in_progress"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Processing"
                             android:textStyle="bold"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="12sp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -139,8 +148,9 @@
                     android:focusable="true"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="2dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="#4CAF50">
+                    app:cardBackgroundColor="?attr/colorSurface"
+                    app:strokeWidth="2dp"
+                    app:strokeColor="@color/status_resolved">
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -154,12 +164,13 @@
                             android:text="0"
                             android:textSize="24sp"
                             android:textStyle="bold"
-                            android:textColor="#4CAF50"/>
+                            android:textColor="@color/status_resolved"/>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Resolved"
                             android:textStyle="bold"
+                            android:textColor="?android:attr/textColorPrimary"
                             android:textSize="12sp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -180,6 +191,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Resolved Complaints"
+                    android:textColor="?android:attr/textColorPrimary"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp"/>
@@ -196,6 +208,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status Analysis"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginTop="24dp"
@@ -204,6 +217,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
                 <com.github.mikephil.charting.charts.PieChart
@@ -217,6 +231,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Category Analysis"
+                android:textColor="?android:attr/textColorPrimary"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginTop="24dp"
@@ -225,6 +240,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="350dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp">
                 <com.github.mikephil.charting.charts.BarChart
@@ -239,6 +255,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:contentPadding="16dp">
@@ -246,8 +263,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Tip: You can view detailed information for each complaint in the 'My Complaints' section."
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp"
-                    android:alpha="0.8"
                     android:textStyle="italic"/>
             </com.google.android.material.card.MaterialCardView>
 

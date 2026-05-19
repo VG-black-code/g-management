@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.bumptech.glide.Glide;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,7 +38,7 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
 
     private SwipeRefreshLayout swipeRefresh;
     private LinearLayout complaintListContainer;
-    private TextView titleText, noDataText;
+    private TextView titleText, noDataText, viewAllListBtn;
     private EditText listSearchInput;
     private String filterStatus = "All";
     private List<Issue> allIssues = new ArrayList<>();
@@ -56,27 +58,40 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
         complaintListContainer = findViewById(R.id.complaintListContainer);
         titleText = findViewById(R.id.titleText);
         noDataText = findViewById(R.id.noDataText);
+        viewAllListBtn = findViewById(R.id.viewAllListBtn);
         listSearchInput = findViewById(R.id.listSearchInput);
 
-        titleText.setText(filterStatus + " Complaints");
+        updateTitleAndBtn();
 
         findViewById(R.id.closeBtn).setOnClickListener(v -> finish());
         swipeRefresh.setOnRefreshListener(this::fetchComplaints);
         
+        if (viewAllListBtn != null) {
+            viewAllListBtn.setOnClickListener(v -> {
+                filterStatus = "All";
+                updateTitleAndBtn();
+                updateUI(filterIssues(allIssues));
+            });
+        }
+
         setupSearch();
         fetchComplaints();
     }
 
+    private void updateTitleAndBtn() {
+        if (titleText != null) titleText.setText(filterStatus + " Complaints");
+        if (viewAllListBtn != null) {
+            viewAllListBtn.setVisibility(filterStatus.equalsIgnoreCase("All") ? View.GONE : View.VISIBLE);
+        }
+    }
+
     private void setupSearch() {
         listSearchInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterListBySearch(s.toString());
             }
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -86,7 +101,6 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
             updateUI(baseList);
             return;
         }
-
         List<Issue> filtered = new ArrayList<>();
         for (Issue issue : baseList) {
             String idStr = String.valueOf(issue.getId());
@@ -101,15 +115,7 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
 
     private void fetchComplaints() {
         swipeRefresh.setRefreshing(true);
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(SupabaseConfig.URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        SupabaseApi api = retrofit.create(SupabaseApi.class);
-        Map<String, String> filters = new HashMap<>();
-
-        api.getIssues(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, filters)
+        SupabaseConfig.getApi().getIssues(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, new HashMap<>())
                 .enqueue(new Callback<List<Issue>>() {
                     @Override
                     public void onResponse(Call<List<Issue>> call, Response<List<Issue>> response) {
@@ -168,102 +174,102 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
         String currentStatus = issue.getStatus() != null ? issue.getStatus() : "Pending";
         tvStatus.setText(currentStatus);
 
-        // Define precise colors as requested
-        int colorRed = Color.parseColor("#F44336");
-        int colorOrange = Color.parseColor("#FF9800");
-        int colorGreen = Color.parseColor("#4CAF50");
-
-        // Set action button colors explicitly
+        int colorRed = Color.parseColor("#F44336"), colorOrange = Color.parseColor("#FF9800"), colorGreen = Color.parseColor("#4CAF50");
         btnPending.setBackgroundTintList(ColorStateList.valueOf(colorRed));
         btnProcessing.setBackgroundTintList(ColorStateList.valueOf(colorOrange));
         btnResolve.setBackgroundTintList(ColorStateList.valueOf(colorGreen));
 
-        // Reset state
-        btnPending.setEnabled(true);
-        btnProcessing.setEnabled(true);
-        btnResolve.setEnabled(true);
-        btnPending.setAlpha(1.0f);
-        btnProcessing.setAlpha(1.0f);
-        btnResolve.setAlpha(1.0f);
-
         if (currentStatus.equalsIgnoreCase("Pending")) {
-            tvStatus.setTextColor(colorRed);
-            btnPending.setEnabled(false);
-            btnPending.setAlpha(0.3f);
+            tvStatus.setTextColor(colorRed); btnPending.setEnabled(false); btnPending.setAlpha(0.3f);
         } else if (currentStatus.equalsIgnoreCase("Processing")) {
-            tvStatus.setTextColor(colorOrange);
-            btnPending.setEnabled(false);
-            btnPending.setAlpha(0.3f);
-            btnProcessing.setEnabled(false);
-            btnProcessing.setAlpha(0.3f);
+            tvStatus.setTextColor(colorOrange); btnPending.setEnabled(false); btnPending.setAlpha(0.3f); btnProcessing.setEnabled(false); btnProcessing.setAlpha(0.3f);
         } else if (currentStatus.equalsIgnoreCase("Resolved")) {
-            tvStatus.setTextColor(colorGreen);
-            btnPending.setEnabled(false);
-            btnPending.setAlpha(0.3f);
-            btnProcessing.setEnabled(false);
-            btnProcessing.setAlpha(0.3f);
-            btnResolve.setEnabled(false);
-            btnResolve.setAlpha(0.3f);
+            tvStatus.setTextColor(colorGreen); btnPending.setEnabled(false); btnPending.setAlpha(0.3f); btnProcessing.setEnabled(false); btnProcessing.setAlpha(0.3f); btnResolve.setEnabled(false); btnResolve.setAlpha(0.3f);
         }
 
         btnPending.setOnClickListener(v -> showConfirmationDialog(issue, "Pending"));
         btnProcessing.setOnClickListener(v -> showConfirmationDialog(issue, "Processing"));
         btnResolve.setOnClickListener(v -> showConfirmationDialog(issue, "Resolved"));
         
-        View.OnClickListener openDetails = v -> {
-            Intent intent = new Intent(this, IssueDetailActivity.class);
-            intent.putExtra("issue_data", new com.google.gson.Gson().toJson(issue));
-            intent.putExtra("is_admin", true);
-            startActivity(intent);
-        };
-
+        View.OnClickListener openDetails = v -> showComplaintDetailDialog(issue);
         row.findViewById(R.id.btnDetails).setOnClickListener(openDetails);
         row.setOnClickListener(openDetails);
 
         complaintListContainer.addView(row);
     }
 
+    private void showComplaintDetailDialog(Issue issue) {
+        View view = getLayoutInflater().inflate(R.layout.dialog_complaint_details, null);
+        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
+
+        ((TextView) view.findViewById(R.id.detailId)).setText("CMP" + issue.getId());
+        ((TextView) view.findViewById(R.id.detailProblem)).setText(issue.getProblemType());
+        ((TextView) view.findViewById(R.id.detailDescription)).setText(issue.getDescription());
+        
+        TextView statusTv = view.findViewById(R.id.detailStatus);
+        String status = issue.getStatus();
+        statusTv.setText(status);
+
+        ImageView iconView = view.findViewById(R.id.notifIcon);
+
+        if (status != null) {
+            int color;
+            if (status.equalsIgnoreCase("Pending")) {
+                color = ContextCompat.getColor(this, R.color.status_pending);
+            } else if (status.equalsIgnoreCase("Processing")) {
+                color = ContextCompat.getColor(this, R.color.status_in_progress);
+            } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
+                color = ContextCompat.getColor(this, R.color.status_resolved);
+            } else {
+                color = ContextCompat.getColor(this, R.color.blue_primary);
+            }
+            statusTv.setTextColor(color);
+            if (iconView != null) iconView.setColorFilter(color);
+        }
+
+        ImageView detailImage = view.findViewById(R.id.detailImage);
+        if (detailImage != null && issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
+            detailImage.setVisibility(View.VISIBLE);
+            Glide.with(this).load(issue.getPhotoUrl()).placeholder(android.R.drawable.ic_menu_gallery).into(detailImage);
+            detailImage.setOnClickListener(v -> {
+                Intent intent = new Intent(this, FullScreenImageActivity.class);
+                intent.putExtra("image_url", issue.getPhotoUrl());
+                startActivity(intent);
+            });
+        }
+
+        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+    }
+
+    private String formatDateTime(String isoString) {
+        if (isoString == null || isoString.isEmpty()) return "-";
+        try {
+            String cleanIso = isoString.endsWith("Z") ? isoString.substring(0, isoString.length() - 1) : isoString;
+            String pattern = cleanIso.contains(".") ? "yyyy-MM-dd'T'HH:mm:ss.SSS" : "yyyy-MM-dd'T'HH:mm:ss";
+            SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.getDefault());
+            inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = inputFormat.parse(cleanIso);
+            return new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date);
+        } catch (Exception e) { return isoString; }
+    }
+
     private void showConfirmationDialog(Issue issue, String newStatus) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Confirm Status Change");
-        builder.setMessage("Change status of CMP" + issue.getId() + " to " + newStatus + "?");
-        builder.setPositiveButton("Confirm", (dialog, which) -> {
-            updateStatus(issue, newStatus);
-        });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
+        new AlertDialog.Builder(this).setTitle("Confirm Status Change").setMessage("Change to " + newStatus + "?")
+                .setPositiveButton("Confirm", (d, w) -> updateStatus(issue, newStatus)).setNegativeButton("Cancel", null).show();
     }
 
     private void updateStatus(Issue issue, String newStatus) {
-        if (issue.getId() == null) {
-            Toast.makeText(this, "Error: Issue ID is missing", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        Map<String, String> query = new HashMap<>(); query.put("id", "eq." + issue.getId());
+        Map<String, Object> updates = new HashMap<>(); updates.put("status", newStatus);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC")); String now = sdf.format(new Date());
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(SupabaseConfig.URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+        if (newStatus.equalsIgnoreCase("Processing")) updates.put("processing_at", now);
+        else if (newStatus.equalsIgnoreCase("Resolved")) updates.put("resolved_at", now);
 
-        SupabaseApi api = retrofit.create(SupabaseApi.class);
-        
-        Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("id", "eq." + issue.getId());
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("status", newStatus);
-        
-        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault());
-        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        String now = isoFormat.format(new Date());
-
-        if (newStatus.equalsIgnoreCase("Processing")) {
-            updates.put("processing_at", now);
-        } else if (newStatus.equalsIgnoreCase("Resolved")) {
-            updates.put("resolved_at", now);
-        }
-
-        api.updateIssue(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, queryParams, updates)
+        SupabaseConfig.getApi().updateIssue(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, query, updates)
                 .enqueue(new Callback<Void>() {
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
@@ -271,39 +277,19 @@ public class AdminComplaintsListActivity extends AppCompatActivity {
                             sendStudentNotification(issue, newStatus);
                             Toast.makeText(AdminComplaintsListActivity.this, "Status updated!", Toast.LENGTH_SHORT).show();
                             fetchComplaints();
-                        } else {
-                            Toast.makeText(AdminComplaintsListActivity.this, "Update failed (" + response.code() + ")", Toast.LENGTH_SHORT).show();
                         }
                     }
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Toast.makeText(AdminComplaintsListActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
+                    @Override public void onFailure(Call<Void> call, Throwable t) {}
                 });
     }
 
     private void sendStudentNotification(Issue issue, String newStatus) {
-        String title = "Complaint Update";
-        String message = "Your complaint regarding '" + issue.getProblemType() + "' has been updated to: " + newStatus;
-        
-        Notification notification = new Notification(issue.getUserName(), title, message);
-        
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(SupabaseConfig.URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        SupabaseApi api = retrofit.create(SupabaseApi.class);
-
-        api.sendNotification(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, notification)
-                .enqueue(new Callback<Void>() {
-                    @Override
-                    public void onResponse(Call<Void> call, Response<Void> response) {
-                        Log.d("AdminList", "Notification sent to student");
-                    }
-                    @Override
-                    public void onFailure(Call<Void> call, Throwable t) {
-                        Log.e("AdminList", "Failed to send notification");
-                    }
-                });
+        String name = issue.getUserName();
+        if (name != null && name.contains(" / ")) name = name.split(" / ")[0].trim();
+        Notification notification = new Notification(name, "Complaint Update", "Your complaint is now: " + newStatus, issue.getId());
+        SupabaseConfig.getApi().sendNotification(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, notification).enqueue(new Callback<Void>() {
+            @Override public void onResponse(Call<Void> call, Response<Void> response) {}
+            @Override public void onFailure(Call<Void> call, Throwable t) {}
+        });
     }
 }

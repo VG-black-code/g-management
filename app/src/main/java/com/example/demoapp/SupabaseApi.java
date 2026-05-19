@@ -17,9 +17,9 @@ import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 
 public interface SupabaseApi {
-    @Headers({"Content-Type: application/json", "Prefer: return=minimal"})
+    @Headers({"Content-Type: application/json", "Prefer: return=representation"})
     @POST("rest/v1/issues")
-    Call<Void> insertIssue(
+    Call<List<Issue>> insertIssue(
         @Header("apikey") String apiKey,
         @Header("Authorization") String authToken,
         @Body Issue issue

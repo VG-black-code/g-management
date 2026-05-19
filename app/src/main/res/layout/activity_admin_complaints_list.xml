@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0F2F5">
+    android:background="?android:attr/windowBackground">
 
     <!-- Top Header Bar -->
     <androidx.cardview.widget.CardView
@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardElevation="2dp"
+        app:cardBackgroundColor="?attr/colorSurface"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -30,12 +31,28 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Complaints List"
-                    android:textColor="#333"
+                    android:textColor="?attr/colorOnSurface"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/viewAllListBtn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:text="View All >"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@id/titleText"
+                    app:layout_constraintStart_toEndOf="@id/titleText"
+                    app:layout_constraintTop_toTopOf="@id/titleText" />
 
                 <ImageView
                     android:id="@+id/closeBtn"
@@ -49,24 +66,27 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:tint="#455A64" />
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Search Bar inside complaint list options -->
+            <!-- Search Bar -->
             <EditText
                 android:id="@+id/listSearchInput"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
                 android:layout_marginHorizontal="16dp"
-                android:background="@drawable/edit_text_bg"
+                android:background="@drawable/edit_text_bg_theme"
                 android:hint="Search by ID or Student Name"
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:paddingHorizontal="12dp"
                 android:textSize="14sp"
                 android:drawableStart="@android:drawable/ic_menu_search"
-                android:drawablePadding="8dp" />
+                android:drawablePadding="8dp"
+                android:textColor="?attr/colorOnSurface"
+                android:textColorHint="?attr/colorOnSurfaceVariant"
+                app:drawableTint="?attr/colorPrimary" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -80,7 +100,8 @@
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -88,11 +109,12 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <androidx.cardview.widget.CardView
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="1dp">
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp"
+                    app:cardBackgroundColor="?attr/colorSurface">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -112,18 +134,18 @@
                                 <LinearLayout
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:background="#FAFAFA"
-                                    android:padding="10dp"
+                                    android:background="?attr/colorSurfaceVariant"
+                                    android:padding="12dp"
                                     android:orientation="horizontal">
-                                    <TextView android:layout_width="120dp" android:layout_height="wrap_content" android:text="Student Name" android:textStyle="bold" android:textSize="12sp"/>
-                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="ID" android:textStyle="bold" android:textSize="12sp"/>
-                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Category" android:textStyle="bold" android:textSize="12sp"/>
-                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Date" android:textStyle="bold" android:textSize="12sp"/>
-                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Status" android:textStyle="bold" android:textSize="12sp"/>
-                                    <TextView android:layout_width="280dp" android:layout_height="wrap_content" android:text="Update Status" android:textStyle="bold" android:textSize="12sp" android:gravity="center"/>
+                                    <TextView android:layout_width="120dp" android:layout_height="wrap_content" android:text="Student Name" android:textStyle="bold" android:textSize="13sp" android:textColor="?attr/colorOnSurfaceVariant"/>
+                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="ID" android:textStyle="bold" android:textSize="13sp" android:textColor="?attr/colorOnSurfaceVariant"/>
+                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Category" android:textStyle="bold" android:textSize="13sp" android:textColor="?attr/colorOnSurfaceVariant"/>
+                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Date" android:textStyle="bold" android:textSize="13sp" android:textColor="?attr/colorOnSurfaceVariant"/>
+                                    <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Status" android:textStyle="bold" android:textSize="13sp" android:textColor="?attr/colorOnSurfaceVariant"/>
+                                    <TextView android:layout_width="280dp" android:layout_height="wrap_content" android:text="Update Status" android:textStyle="bold" android:textSize="13sp" android:gravity="center" android:textColor="?attr/colorOnSurfaceVariant"/>
                                 </LinearLayout>
 
-                                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEE"/>
+                                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="?android:attr/listDivider"/>
 
                                 <LinearLayout
                                     android:id="@+id/complaintListContainer"
@@ -138,13 +160,14 @@
                             android:id="@+id/noDataText"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="20dp"
+                            android:padding="40dp"
                             android:text="No complaints found."
                             android:textAlignment="center"
+                            android:textColor="?attr/colorOnSurfaceVariant"
                             android:visibility="gone" />
 
                     </LinearLayout>
-                </androidx.cardview.widget.CardView>
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

@@ -151,12 +151,12 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                         updatePassword(api, accessToken, password);
                     } catch (Exception e) {
                         progressBar.setVisibility(View.GONE);
-                        resetBtn.setEnabled(true);
+                        resetBtn.setEnabled(false);
                         Toast.makeText(ForgotPasswordActivity.this, "Verification error", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     progressBar.setVisibility(View.GONE);
-                    resetBtn.setEnabled(true);
+                    resetBtn.setEnabled(false);
                     Toast.makeText(ForgotPasswordActivity.this, "Invalid code or expired", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -164,7 +164,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
-                resetBtn.setEnabled(true);
+                resetBtn.setEnabled(false);
                 Toast.makeText(ForgotPasswordActivity.this, "Network error", Toast.LENGTH_SHORT).show();
             }
         });
@@ -183,14 +183,14 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                     finish();
                 } else {
                     Toast.makeText(ForgotPasswordActivity.this, "Failed to update password", Toast.LENGTH_SHORT).show();
-                    resetBtn.setEnabled(true);
+                    resetBtn.setEnabled(false);
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
-                resetBtn.setEnabled(true);
+                resetBtn.setEnabled(false);
                 Toast.makeText(ForgotPasswordActivity.this, "Error updating password", Toast.LENGTH_SHORT).show();
             }
         });

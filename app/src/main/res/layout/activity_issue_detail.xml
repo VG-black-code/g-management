@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface">
+    android:background="?android:attr/windowBackground">
 
     <!-- Header with X button -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -41,7 +41,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -53,11 +53,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp"
+                app:cardBackgroundColor="?attr/colorSurface"
                 android:layout_marginBottom="16dp">
 
                 <ImageView
@@ -66,7 +67,7 @@
                     android:layout_height="250dp"
                     android:scaleType="centerCrop"
                     android:src="@android:drawable/ic_menu_gallery" />
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -111,6 +112,22 @@
                 android:background="?android:attr/dividerVertical"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/labelStudentName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Student Name / ID"
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorSecondary" />
+            <TextView
+                android:id="@+id/detailStudentName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="John Doe / 12345"
+                android:textSize="16sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:layout_marginBottom="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -158,13 +175,13 @@
                 android:layout_marginBottom="24dp" />
 
             <!-- Status History Section -->
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#F8F9FA">
+                app:cardBackgroundColor="?attr/colorSurface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -303,7 +320,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="-"
                                 android:textSize="13sp"
-                                android:textColor="#388E3C"
+                                android:textColor="@color/status_resolved"
                                 android:textStyle="bold" />
                             <TextView
                                 android:id="@+id/detailResolvedTime"
@@ -311,14 +328,14 @@
                                 android:layout_height="wrap_content"
                                 android:text="-"
                                 android:textSize="13sp"
-                                android:textColor="#388E3C"
+                                android:textColor="@color/status_resolved"
                                 android:textStyle="bold" />
                         </LinearLayout>
                     </LinearLayout>
 
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

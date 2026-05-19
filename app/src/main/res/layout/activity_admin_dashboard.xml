@@ -10,7 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F5F6FA">
+        android:background="?android:attr/windowBackground">
 
         <!-- Top Header Bar -->
         <androidx.cardview.widget.CardView
@@ -123,17 +123,17 @@
                             app:cardCornerRadius="10dp"
                             app:cardElevation="1dp"
                             app:strokeWidth="2dp"
-                            app:strokeColor="#1976D2"
+                            app:strokeColor="?attr/colorPrimary"
+                            app:cardBackgroundColor="?attr/colorSurface"
                             android:clickable="true"
                             android:focusable="true">
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp"
-                                android:background="#E3F2FD">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Complaints" android:textColor="#1976D2" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/totalCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#1976D2" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                                android:padding="16dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Complaints" android:textColor="?attr/colorPrimary" android:textSize="13sp" android:textStyle="bold"/>
+                                <TextView android:id="@+id/totalComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="?attr/colorPrimary" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
@@ -146,18 +146,18 @@
                             android:layout_margin="6dp"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="1dp"
-                            app:strokeWidth="0dp"
-                            app:strokeColor="#F44336"
+                            app:strokeWidth="2dp"
+                            app:strokeColor="@color/status_pending"
+                            app:cardBackgroundColor="?attr/colorSurface"
                             android:clickable="true"
                             android:focusable="true">
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp"
-                                android:background="#FFEBEE">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pending" android:textColor="#F44336" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/pendingCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#F44336" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                                android:padding="16dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pending" android:textColor="@color/status_pending" android:textSize="13sp" android:textStyle="bold"/>
+                                <TextView android:id="@+id/pendingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_pending" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
@@ -170,18 +170,18 @@
                             android:layout_margin="6dp"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="1dp"
-                            app:strokeWidth="0dp"
-                            app:strokeColor="#FF9800"
+                            app:strokeWidth="2dp"
+                            app:strokeColor="@color/status_in_progress"
+                            app:cardBackgroundColor="?attr/colorSurface"
                             android:clickable="true"
                             android:focusable="true">
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp"
-                                android:background="#FFF3E0">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Processing" android:textColor="#FF9800" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/processingCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FF9800" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                                android:padding="16dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Processing" android:textColor="@color/status_in_progress" android:textSize="13sp" android:textStyle="bold"/>
+                                <TextView android:id="@+id/processingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_in_progress" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
@@ -194,18 +194,18 @@
                             android:layout_margin="6dp"
                             app:cardCornerRadius="10dp"
                             app:cardElevation="1dp"
-                            app:strokeWidth="0dp"
-                            app:strokeColor="#4CAF50"
+                            app:strokeWidth="2dp"
+                            app:strokeColor="@color/status_resolved"
+                            app:cardBackgroundColor="?attr/colorSurface"
                             android:clickable="true"
                             android:focusable="true">
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="16dp"
-                                android:background="#E8F5E9">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resolved" android:textColor="#4CAF50" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/resolvedCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#4CAF50" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
+                                android:padding="16dp">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resolved" android:textColor="@color/status_resolved" android:textSize="13sp" android:textStyle="bold"/>
+                                <TextView android:id="@+id/resolvedComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_resolved" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </GridLayout>
@@ -257,7 +257,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp"
                                 android:layout_marginTop="20dp"
-                                android:background="@drawable/edit_text_bg"
+                                android:background="@drawable/edit_text_bg_theme"
                                 android:hint="Search ID (e.g. 001)"
                                 android:imeOptions="actionSearch"
                                 android:inputType="text"
@@ -266,7 +266,7 @@
                                 android:drawableStart="@android:drawable/ic_menu_search"
                                 android:drawablePadding="12dp"
                                 android:textColor="?android:attr/textColorPrimary"
-                                android:textColorHint="#999" />
+                                android:textColorHint="?android:attr/textColorSecondary" />
 
                             <HorizontalScrollView
                                 android:layout_width="match_parent"
@@ -355,7 +355,7 @@
                                 android:text="No complaints found."
                                 android:textAlignment="center"
                                 android:visibility="gone"
-                                android:textColor="#888" />
+                                android:textColor="?android:attr/textColorSecondary" />
 
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>

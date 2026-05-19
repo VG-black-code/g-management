@@ -20,6 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Edit Profile"
+            android:textColor="?android:attr/textColorPrimary"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -90,11 +91,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Full Name">
+                android:hint="Full Name"
+                app:boxBackgroundColor="?attr/colorSurface"
+                app:boxStrokeColor="?attr/colorPrimary"
+                android:textColorHint="?android:attr/textColorSecondary">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/profileName"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textColor="?android:attr/textColorPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
@@ -111,12 +116,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Email Address">
+                    android:hint="Email Address"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/profileEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textEmailAddress" />
+                        android:inputType="textEmailAddress"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -135,13 +144,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:hint="Phone Number">
+                android:hint="Phone Number"
+                app:boxBackgroundColor="?attr/colorSurface"
+                app:boxStrokeColor="?attr/colorPrimary"
+                android:textColorHint="?android:attr/textColorSecondary">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/profilePhone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:maxLength="10"
-                    android:inputType="phone" />
+                    android:inputType="phone"
+                    android:textColor="?android:attr/textColorPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
@@ -157,13 +170,17 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:hint="Date of Birth">
+                    android:hint="Date of Birth"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/profileDob"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:focusable="false"
-                        android:clickable="true" />
+                        android:clickable="true"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -172,12 +189,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="Gender">
+                    android:hint="Gender"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <AutoCompleteTextView
                         android:id="@+id/profileGender"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="none" />
+                        android:inputType="none"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -188,11 +209,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:hint="User Role"
-                android:enabled="false">
+                android:enabled="false"
+                app:boxBackgroundColor="?attr/colorSurface"
+                app:boxStrokeColor="?attr/colorPrimary"
+                android:textColorHint="?android:attr/textColorSecondary">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/profileRole"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:textColor="?android:attr/textColorPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Role Specific Sections -->
@@ -217,55 +242,61 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Student ID">
+                    android:hint="Student ID"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/studentId"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Department">
+                    android:hint="Department"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/studentDept"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
+
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Course / Program">
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/studentCourse"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-                </com.google.android.material.textfield.TextInputLayout>
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint="Acadamic year">
+                    android:hint="Acadamic year"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/studentYearSem"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="College Name">
+                    android:hint="College Name"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/studentCollege"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -281,55 +312,75 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Faculty ID">
+                    android:hint="Faculty ID"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/facultyId"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Department">
+                    android:hint="Department"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/facultyDept"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Designation">
+                    android:hint="Designation"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/facultyDesignation"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Subjects Handling">
+                    android:hint="Subjects Handling"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/facultySubjects"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Office Room Number">
+                    android:hint="Office Room Number"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/facultyOffice"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -345,33 +396,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Admin ID">
+                    android:hint="Admin ID"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/adminId"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Department / Office">
+                    android:hint="Department / Office"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/adminDept"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Position">
+                    android:hint="Position"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/adminPosition"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -387,56 +450,76 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Worker ID">
+                    android:hint="Worker ID"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/workerId"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Department">
+                    android:hint="Department"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/workerDept"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Skills / Expertise">
+                    android:hint="Skills / Expertise"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/workerSkills"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Experience (Years)">
+                    android:hint="Experience (Years)"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/workerExperience"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="number" />
+                        android:inputType="number"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
-                    android:hint="Work Category">
+                    android:hint="Work Category"
+                    app:boxBackgroundColor="?attr/colorSurface"
+                    app:boxStrokeColor="?attr/colorPrimary"
+                    android:textColorHint="?android:attr/textColorSecondary">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/workerCategory"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:textColor="?android:attr/textColorPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
@@ -448,7 +531,9 @@
                 android:layout_marginBottom="16dp"
                 android:text="SAVE UPDATES"
                 app:cornerRadius="12dp"
-                android:textStyle="bold"/>
+                android:textStyle="bold"
+                app:backgroundTint="?attr/colorPrimary"
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
     </ScrollView>

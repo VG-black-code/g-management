@@ -44,6 +44,8 @@ public class IssueDetailActivity extends AppCompatActivity {
         TextView detailDescription = findViewById(R.id.detailDescription);
         TextView detailComplaintId = findViewById(R.id.detailComplaintId);
         TextView detailDateTime = findViewById(R.id.detailDateTime);
+        TextView detailStudentName = findViewById(R.id.detailStudentName);
+        View labelStudentName = findViewById(R.id.labelStudentName);
         
         // Status History Views
         TextView detailRaisedDate = findViewById(R.id.detailRaisedDate);
@@ -85,6 +87,16 @@ public class IssueDetailActivity extends AppCompatActivity {
             detailLocation.setText(currentIssue.getLocation());
             detailDescription.setText(currentIssue.getDescription());
             detailComplaintId.setText("#CMP" + (currentIssue.getId() != null ? currentIssue.getId() : "---"));
+
+            // Set Student Name (Hide if not admin and viewing own profile, but keeping it visible for transparency as requested)
+            if (currentIssue.getUserName() != null && !currentIssue.getUserName().isEmpty()) {
+                detailStudentName.setText(currentIssue.getUserName());
+                detailStudentName.setVisibility(View.VISIBLE);
+                labelStudentName.setVisibility(View.VISIBLE);
+            } else {
+                detailStudentName.setVisibility(View.GONE);
+                labelStudentName.setVisibility(View.GONE);
+            }
 
             // Main date at top
             detailDateTime.setText("Raised on: " + formatDateTime(currentIssue.getCreatedAt()));
