@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         ThemeHelper.applyTheme(this);
         super.onCreate(savedInstanceState);
         
-        // Automatic logout: Always clear login state on app start for testing
+        // Clear login state on app start for testing/fresh login
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         prefs.edit().putBoolean("is_logged_in", false).apply();
 
@@ -57,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
             if (input.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show();
                 return;
+            }
+
+            if (input.contains("@")) {
+                input = input.toLowerCase();
             }
 
             if (input.equals("admin") && password.equals("admin123")) {
@@ -83,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("email", "admin@demo.com");
         editor.putString("name", "Admin");
         editor.putString("role", "Admin");
-        editor.putString("access_token", SupabaseConfig.API_KEY); // Use API Key as fallback token
+        editor.putString("access_token", SupabaseConfig.API_KEY); 
         editor.putBoolean("is_logged_in", true);
         editor.apply();
 
@@ -95,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private void resolveEmailAndLogin(String input, String password) {
         SupabaseApi api = SupabaseConfig.getApi();
         String authHeader = "Bearer " + SupabaseConfig.API_KEY;
+        
         api.getProfileByMobile(SupabaseConfig.API_KEY, authHeader, "eq." + input)
             .enqueue(new Callback<List<Map<String, Object>>>() {
                 @Override
@@ -109,29 +114,34 @@ public class MainActivity extends AppCompatActivity {
                                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                                         loginWithEmail((String) response.body().get(0).get("email_id"), password);
                                     } else {
-                                        loginBtn.setEnabled(true);
-                                        Toast.makeText(MainActivity.this, "Invalid ID or Credentials", Toast.LENGTH_SHORT).show();
+                                        Map<String, String> adminFilters = new HashMap<>();
+                                        adminFilters.put("admin_id", "eq." + input);
+                                        api.getAdmins(SupabaseConfig.API_KEY, authHeader, adminFilters).enqueue(new Callback<List<Map<String, Object>>>() {
+                                            @Override
+                                            public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                                                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                                    loginWithEmail((String) response.body().get(0).get("email"), password);
+                                                } else {
+                                                    loginBtn.setEnabled(true);
+                                                    Toast.makeText(MainActivity.this, "User ID not found", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                            @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { loginBtn.setEnabled(true); }
+                                        });
                                     }
                                 }
-                                @Override
-                                public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
-                                    loginBtn.setEnabled(true);
-                                    Toast.makeText(MainActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
+                                @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { loginBtn.setEnabled(true); }
                             });
                     }
                 }
-                @Override
-                public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
-                    loginBtn.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { loginBtn.setEnabled(true); }
             });
     }
 
     private void loginWithEmail(String email, String password) {
+        final String finalEmail = email.trim().toLowerCase();
         Map<String, String> body = new HashMap<>();
-        body.put("email", email);
+        body.put("email", finalEmail);
         body.put("password", password);
 
         String authHeader = "Bearer " + SupabaseConfig.API_KEY;
@@ -140,15 +150,14 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 loginBtn.setEnabled(true);
                 if (response.isSuccessful() && response.body() != null) {
-                    handleLoginSuccess(email, password, response.body());
+                    handleLoginSuccess(finalEmail, password, response.body());
                 } else {
-                    Toast.makeText(MainActivity.this, "Login Failed: Invalid Email/Password", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Invalid Email or Password", Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            @Override public void onFailure(Call<ResponseBody> call, Throwable t) {
                 loginBtn.setEnabled(true);
-                Toast.makeText(MainActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -162,106 +171,173 @@ public class MainActivity extends AppCompatActivity {
             String userId = user.getString("id");
             
             JSONObject userMetadata = user.optJSONObject("user_metadata");
-            String nameFromAuth = userMetadata != null ? userMetadata.optString("full_name", "User") : "User";
             String roleFromAuth = userMetadata != null ? userMetadata.optString("user_type", "Student") : "Student";
-
-            if (email.equalsIgnoreCase("demo@test.com") || email.equalsIgnoreCase("admin@test.com")) {
-                roleFromAuth = "Admin";
-            }
-
+            
             SharedPreferences.Editor editor = getSharedPreferences("UserPrefs", MODE_PRIVATE).edit();
             editor.putString("access_token", accessToken);
             editor.putString("user_id", userId);
             editor.putString("email", email);
             editor.putString("password", password);
-            editor.putString("name", nameFromAuth);
             editor.putString("role", roleFromAuth);
-            editor.putBoolean("is_logged_in", true);
+            editor.putBoolean("is_logged_in", false); 
             editor.apply();
 
-            fetchProfileAndNavigate(userId, accessToken, email, nameFromAuth, roleFromAuth);
+            Log.d(TAG, "Auth Success. Role: " + roleFromAuth + " UID: " + userId);
+
+            String userHeader = "Bearer " + accessToken;
+            String anonHeader = "Bearer " + SupabaseConfig.API_KEY;
+
+            if ("Admin".equalsIgnoreCase(roleFromAuth)) {
+                fetchAdminData(userId, email, userHeader, anonHeader);
+            } else {
+                fetchProfileData(userId, email, userHeader, anonHeader);
+            }
 
         } catch (Exception e) {
-            Toast.makeText(this, "Error processing login response", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Login processing error", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void fetchProfileAndNavigate(String userId, String token, String email, String defaultName, String defaultRole) {
+    private void fetchAdminData(String userId, String email, String userHeader, String anonHeader) {
         Map<String, String> filters = new HashMap<>();
         filters.put("id", "eq." + userId);
-
-        SupabaseApi api = SupabaseConfig.getApi();
-        String authHeader = "Bearer " + token;
-
-        Call<List<Map<String, Object>>> call;
-        if (defaultRole != null && (defaultRole.equalsIgnoreCase("Admin") || defaultRole.equalsIgnoreCase("Administrator"))) {
-            call = api.getAdmins(SupabaseConfig.API_KEY, authHeader, filters);
-        } else {
-            call = api.getProfiles(SupabaseConfig.API_KEY, authHeader, filters);
-        }
-
-        call.enqueue(new Callback<List<Map<String, Object>>>() {
+        
+        // 1. Try fetching by ID using User Token
+        SupabaseConfig.getApi().getAdmins(SupabaseConfig.API_KEY, userHeader, filters).enqueue(new Callback<List<Map<String, Object>>>() {
             @Override
             public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
-                String finalName = defaultName;
-                String finalRole = defaultRole;
-
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    Map<String, Object> profile = response.body().get(0);
-                    finalName = String.valueOf(profile.getOrDefault("full_name", defaultName));
-                    finalRole = String.valueOf(profile.getOrDefault("user_role", defaultRole));
-                    
-                    SharedPreferences.Editor editor = getSharedPreferences("UserPrefs", MODE_PRIVATE).edit();
-                    for (Map.Entry<String, Object> entry : profile.entrySet()) {
-                        if (entry.getValue() != null) {
-                            String key = entry.getKey();
-                            String val = String.valueOf(entry.getValue());
-                            if (key.equals("mobile_number")) editor.putString("phone", val);
-                            else if (key.equals("email_id")) editor.putString("email", val);
-                            else if (key.equals("full_name")) editor.putString("name", val);
-                            else if (key.equals("user_role")) editor.putString("role", val);
-                            else if (key.equals("profile_image")) editor.putString("profileImage", val);
-                            else editor.putString(key, val);
+                    processAdminRecord(response.body().get(0));
+                } else {
+                    // 2. Try fetching by Email using Anon Token (Bypass RLS)
+                    Map<String, String> emailFilters = new HashMap<>();
+                    emailFilters.put("email", "eq." + email);
+                    SupabaseConfig.getApi().getAdmins(SupabaseConfig.API_KEY, anonHeader, emailFilters).enqueue(new Callback<List<Map<String, Object>>>() {
+                        @Override
+                        public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                processAdminRecord(response.body().get(0));
+                            } else {
+                                // 3. Last fallback: Check profiles table
+                                checkProfileAsFallback(userId, email, anonHeader);
+                            }
                         }
-                    }
-                    editor.apply();
+                        @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { checkProfileAsFallback(userId, email, anonHeader); }
+                    });
                 }
-
-                if (email.equalsIgnoreCase("demo@test.com") || email.equalsIgnoreCase("admin@test.com")) {
-                    finalRole = "Admin";
-                    getSharedPreferences("UserPrefs", MODE_PRIVATE).edit().putString("role", "Admin").apply();
-                }
-
-                Toast.makeText(MainActivity.this, "Welcome " + finalName, Toast.LENGTH_SHORT).show();
-                Intent intent = (finalRole != null && (finalRole.equalsIgnoreCase("Admin") || finalRole.equalsIgnoreCase("Administrator"))) ?
-                        new Intent(MainActivity.this, AdminDashboardActivity.class) : 
-                        new Intent(MainActivity.this, DashboardActivity.class);
-                startActivity(intent);
-                finish();
             }
-
-            @Override
-            public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
-                Intent intent = (defaultRole != null && (defaultRole.equalsIgnoreCase("Admin") || defaultRole.equalsIgnoreCase("Administrator"))) ?
-                        new Intent(MainActivity.this, AdminDashboardActivity.class) : 
-                        new Intent(MainActivity.this, DashboardActivity.class);
-                startActivity(intent);
-                finish();
-            }
+            @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { checkProfileAsFallback(userId, email, anonHeader); }
         });
     }
 
-    private void startBackgroundAnimations() {
-        Animation pulse = AnimationUtils.loadAnimation(this, android.R.anim.fade_in);
-        pulse.setDuration(3000);
-        pulse.setRepeatCount(Animation.INFINITE);
-        pulse.setRepeatMode(Animation.REVERSE);
-        bgCircle1.startAnimation(pulse);
+    private void processAdminRecord(Map<String, Object> admin) {
+        Object approvedObj = admin.get("is_approved");
+        boolean isApproved = false;
+        if (approvedObj instanceof Boolean) isApproved = (Boolean) approvedObj;
+        else isApproved = Boolean.parseBoolean(String.valueOf(approvedObj));
+
+        if (isApproved) {
+            saveUserData(admin, true);
+            startActivity(new Intent(MainActivity.this, AdminDashboardActivity.class));
+            finish();
+        } else {
+            Toast.makeText(MainActivity.this, "Your admin account is pending approval.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void fetchProfileData(String userId, String email, String userHeader, String anonHeader) {
+        Map<String, String> filters = new HashMap<>();
+        filters.put("id", "eq." + userId);
         
-        Animation pulse2 = AnimationUtils.loadAnimation(this, android.R.anim.fade_in);
-        pulse2.setDuration(4000);
-        pulse2.setRepeatCount(Animation.INFINITE);
-        pulse2.setRepeatMode(Animation.REVERSE);
-        bgCircle2.startAnimation(pulse2);
+        SupabaseConfig.getApi().getProfiles(SupabaseConfig.API_KEY, userHeader, filters).enqueue(new Callback<List<Map<String, Object>>>() {
+            @Override
+            public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    saveUserData(response.body().get(0), false);
+                    startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                    finish();
+                } else {
+                    Map<String, String> emailFilters = new HashMap<>();
+                    emailFilters.put("email_id", "eq." + email);
+                    SupabaseConfig.getApi().getProfiles(SupabaseConfig.API_KEY, anonHeader, emailFilters).enqueue(new Callback<List<Map<String, Object>>>() {
+                        @Override
+                        public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                            if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                saveUserData(response.body().get(0), false);
+                                startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                                finish();
+                            } else {
+                                // Maybe they are an admin but metadata says Student
+                                fetchAdminData(userId, email, userHeader, anonHeader);
+                            }
+                        }
+                        @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { Toast.makeText(MainActivity.this, "User does not exist", Toast.LENGTH_SHORT).show(); }
+                    });
+                }
+            }
+            @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { Toast.makeText(MainActivity.this, "User does not exist", Toast.LENGTH_SHORT).show(); }
+        });
+    }
+
+    private void checkProfileAsFallback(String userId, String email, String anonHeader) {
+        Map<String, String> filters = new HashMap<>();
+        filters.put("id", "eq." + userId);
+        SupabaseConfig.getApi().getProfiles(SupabaseConfig.API_KEY, anonHeader, filters).enqueue(new Callback<List<Map<String, Object>>>() {
+            @Override
+            public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    saveUserData(response.body().get(0), false);
+                    startActivity(new Intent(MainActivity.this, DashboardActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(MainActivity.this, "User record not found in database.", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) { Toast.makeText(MainActivity.this, "User does not exist", Toast.LENGTH_SHORT).show(); }
+        });
+    }
+
+    private void saveUserData(Map<String, Object> data, boolean isAdmin) {
+        SharedPreferences.Editor editor = getSharedPreferences("UserPrefs", MODE_PRIVATE).edit();
+        editor.putBoolean("is_logged_in", true);
+        editor.putString("name", String.valueOf(data.getOrDefault("full_name", "")));
+        
+        String profileImg = String.valueOf(data.getOrDefault("profile_image", ""));
+        if (!profileImg.isEmpty() && !profileImg.equals("null")) {
+            editor.putString("profileImage", profileImg);
+        }
+
+        if (isAdmin) {
+            editor.putString("role", "Admin");
+            editor.putString("admin_id", String.valueOf(data.getOrDefault("admin_id", "")));
+            editor.putString("department", String.valueOf(data.getOrDefault("department", "")));
+            editor.putString("position", String.valueOf(data.getOrDefault("position", "")));
+            editor.putString("email", String.valueOf(data.getOrDefault("email", "")));
+        } else {
+            editor.putString("role", String.valueOf(data.getOrDefault("user_role", "Student")));
+            editor.putString("email", String.valueOf(data.getOrDefault("email_id", "")));
+            editor.putString("phone", String.valueOf(data.getOrDefault("mobile_number", "")));
+            editor.putString("dob", String.valueOf(data.getOrDefault("dob", "")));
+            editor.putString("gender", String.valueOf(data.getOrDefault("gender", "")));
+            editor.putString("student_id", String.valueOf(data.getOrDefault("student_id", "")));
+            editor.putString("department", String.valueOf(data.getOrDefault("department", "")));
+            editor.putString("year", String.valueOf(data.getOrDefault("year", "")));
+            editor.putString("college_name", String.valueOf(data.getOrDefault("college_name", "")));
+            editor.putString("faculty_id", String.valueOf(data.getOrDefault("faculty_id", "")));
+            editor.putString("designation", String.valueOf(data.getOrDefault("designation", "")));
+            editor.putString("subjects", String.valueOf(data.getOrDefault("subjects", "")));
+            editor.putString("office_location", String.valueOf(data.getOrDefault("office_location", "")));
+            editor.putString("worker_id", String.valueOf(data.getOrDefault("worker_id", "")));
+            editor.putString("skills", String.valueOf(data.getOrDefault("skills", "")));
+            editor.putString("experience", String.valueOf(data.getOrDefault("experience", "")));
+            editor.putString("category", String.valueOf(data.getOrDefault("category", "")));
+        }
+        editor.apply();
+    }
+
+    private void startBackgroundAnimations() {
+        Animation pulse = AnimationUtils.loadAnimation(this, R.anim.pulse);
+        if (bgCircle1 != null) bgCircle1.startAnimation(pulse);
+        if (bgCircle2 != null) bgCircle2.startAnimation(pulse);
     }
 }

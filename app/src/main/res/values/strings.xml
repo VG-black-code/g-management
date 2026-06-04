@@ -45,6 +45,8 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="create">CREATE</string>
     <string name="user_type">User Type</string>
+    <string name="get_otp">GET OTP</string>
+    <string name="otp_retry_timer">Resend in %d s</string>
 
     <!-- Complaint Strings -->
     <string name="raise_complaint">Raise a Complaint</string>
@@ -68,4 +70,7 @@
     <string name="admin_title">Admin</string>
 
     <string name="tagline">· YOUR VOICE · OUR ACTION · BETTER CAMPUS ·</string>
+
+    <string name="status_pending">PENDING</string>
+    <string name="approve">Approve</string>
 </resources>

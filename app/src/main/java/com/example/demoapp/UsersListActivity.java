@@ -101,10 +101,10 @@ public class UsersListActivity extends AppCompatActivity {
         List<Map<String, Object>> filtered = new ArrayList<>();
         for (Map<String, Object> user : allUsers) {
             String name = String.valueOf(user.getOrDefault("full_name", user.getOrDefault("name", ""))).toLowerCase();
-            String id = "";
-            if (user.containsKey("student_id") && user.get("student_id") != null) id = String.valueOf(user.get("student_id")).toLowerCase();
+            String studentId = String.valueOf(user.getOrDefault("student_id", "")).toLowerCase();
+            String adminId = String.valueOf(user.getOrDefault("admin_id", "")).toLowerCase();
             
-            if (name.contains(query.toLowerCase()) || id.contains(query.toLowerCase())) {
+            if (name.contains(query.toLowerCase()) || studentId.contains(query.toLowerCase()) || adminId.contains(query.toLowerCase())) {
                 filtered.add(user);
             }
         }
@@ -123,15 +123,11 @@ public class UsersListActivity extends AppCompatActivity {
 
         SupabaseApi api = retrofit.create(SupabaseApi.class);
         
-        // Use current user's token to satisfy the "Admins can view all profiles" policy
         String token = userPrefs.getString("access_token", SupabaseConfig.API_KEY);
         String authHeader = token.startsWith("Bearer ") ? token : "Bearer " + token;
 
         Map<String, String> filters = new HashMap<>();
-        // Fetch students only
-        filters.put("user_role", "eq.Student");
-        
-        // Sorting logic
+        // Fetch all profiles to allow main admin to see both students and pending admins
         String order = isSortNewest ? "created_at.desc" : "created_at.asc";
         filters.put("order", order);
 
@@ -143,15 +139,13 @@ public class UsersListActivity extends AppCompatActivity {
                         swipeRefresh.setRefreshing(false);
                         if (response.isSuccessful() && response.body() != null) {
                             allUsers = response.body();
-                            Log.d(TAG, "Fetched users count: " + allUsers.size());
                             adapter.updateList(allUsers);
                             noUsersText.setVisibility(allUsers.isEmpty() ? View.VISIBLE : View.GONE);
                             
                             String currentQuery = searchInput.getText().toString();
                             if (!currentQuery.isEmpty()) filterUsers(currentQuery);
                         } else {
-                            Log.e(TAG, "Response failed: " + response.code() + " Message: " + response.message());
-                            Toast.makeText(UsersListActivity.this, "Access Denied or Server Error (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(UsersListActivity.this, "Access Denied or Server Error", Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -159,7 +153,6 @@ public class UsersListActivity extends AppCompatActivity {
                     public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
                         loader.setVisibility(View.GONE);
                         swipeRefresh.setRefreshing(false);
-                        Log.e(TAG, "Network error: " + t.getMessage());
                         Toast.makeText(UsersListActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
                     }
                 });

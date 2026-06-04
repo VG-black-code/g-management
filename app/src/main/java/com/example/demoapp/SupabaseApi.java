@@ -15,6 +15,7 @@ import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
+import retrofit2.http.Url;
 
 public interface SupabaseApi {
     @Headers({"Content-Type: application/json", "Prefer: return=representation"})
@@ -148,6 +149,14 @@ public interface SupabaseApi {
     );
 
     @Headers({"Content-Type: application/json", "Prefer: return=minimal"})
+    @POST("rest/v1/admins")
+    Call<Void> createAdmin(
+        @Header("apikey") String apiKey,
+        @Header("Authorization") String authToken,
+        @Body Map<String, Object> adminData
+    );
+
+    @Headers({"Content-Type: application/json", "Prefer: return=minimal"})
     @PATCH("rest/v1/profiles")
     Call<Void> updateProfile(
         @Header("apikey") String apiKey,
@@ -164,6 +173,9 @@ public interface SupabaseApi {
         @QueryMap Map<String, String> queryFilters,
         @Body Map<String, Object> updateData
     );
+
+    @POST
+    Call<Void> triggerWebhook(@Url String url, @Body Map<String, Object> data);
 
     @PUT("auth/v1/user")
     Call<Void> updatePassword(

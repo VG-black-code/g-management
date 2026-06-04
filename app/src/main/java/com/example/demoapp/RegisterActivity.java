@@ -1,16 +1,19 @@
 package com.example.demoapp;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.button.MaterialButtonToggleGroup;
 
 import org.json.JSONObject;
 
@@ -33,6 +36,8 @@ public class RegisterActivity extends AppCompatActivity {
     private String userId = "";
     private String currentAccessToken = "";
     private CountDownTimer otpTimer;
+    private String selectedRole = "Student";
+    private String emailUsedForOtp = ""; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +59,29 @@ public class RegisterActivity extends AppCompatActivity {
         sendEmailOtp = findViewById(R.id.sendEmailOtp);
         createBtn = findViewById(R.id.createBtn);
         progressBar = findViewById(R.id.progressBar);
+        MaterialButtonToggleGroup roleToggleGroup = findViewById(R.id.roleToggleGroup);
+
+        roleToggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.btnStudent) {
+                    selectedRole = "Student";
+                    mobile.setVisibility(View.VISIBLE);
+                    studentId.setVisibility(View.VISIBLE);
+                    studentId.setHint("Student ID");
+                    studentDept.setVisibility(View.VISIBLE);
+                    studentDept.setHint("Department");
+                    academicYear.setVisibility(View.VISIBLE);
+                } else if (checkedId == R.id.btnAdmin) {
+                    selectedRole = "Admin";
+                    mobile.setVisibility(View.GONE);
+                    studentId.setVisibility(View.VISIBLE);
+                    studentId.setHint("Admin ID");
+                    studentDept.setVisibility(View.VISIBLE);
+                    studentDept.setHint("Department");
+                    academicYear.setVisibility(View.GONE);
+                }
+            }
+        });
 
         sendEmailOtp.setOnClickListener(v -> checkEmailAndSendOtp());
 
@@ -68,14 +96,14 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void checkEmailAndSendOtp() {
-        String emailVal = email.getText().toString().trim();
+        String emailVal = email.getText().toString().trim().toLowerCase();
 
         if (emailVal.isEmpty()) {
             email.setError("Required");
             return;
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(emailVal).matches()) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(emailVal).matches()) {
             email.setError("Enter a valid email");
             return;
         }
@@ -83,23 +111,42 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         sendEmailOtp.setEnabled(false);
 
+        checkEmailExists(emailVal);
+    }
+
+    private void checkEmailExists(String emailVal) {
         Map<String, String> filters = new HashMap<>();
         filters.put("email_id", "eq." + emailVal);
 
         SupabaseConfig.getApi().getProfiles(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, filters)
             .enqueue(new Callback<List<Map<String, Object>>>() {
                 @Override
-                public void onResponse(Call<List<Map<String, Object>>> call, Response<List<Map<String, Object>>> response) {
+                public void onResponse(@NonNull Call<List<Map<String, Object>>> call, @NonNull Response<List<Map<String, Object>>> response) {
                     if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                        stopProcess("Email already registered. Please login.");
+                        stopProcess("Email already registered in system.");
                     } else {
-                        sendEmailOtpInternal(emailVal);
+                        Map<String, String> adminFilters = new HashMap<>();
+                        adminFilters.put("email", "eq." + emailVal);
+                        SupabaseConfig.getApi().getAdmins(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, adminFilters)
+                            .enqueue(new Callback<List<Map<String, Object>>>() {
+                                @Override
+                                public void onResponse(@NonNull Call<List<Map<String, Object>>> call, @NonNull Response<List<Map<String, Object>>> response) {
+                                    if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                                        stopProcess("Admin Email already registered.");
+                                    } else {
+                                        sendEmailOtpInternal(emailVal);
+                                    }
+                                }
+                                @Override
+                                public void onFailure(@NonNull Call<List<Map<String, Object>>> call, @NonNull Throwable t) {
+                                    sendEmailOtpInternal(emailVal);
+                                }
+                            });
                     }
                 }
 
                 @Override
-                public void onFailure(Call<List<Map<String, Object>>> call, Throwable t) {
-                    Log.e(TAG, "DB Check failed: " + t.getMessage());
+                public void onFailure(@NonNull Call<List<Map<String, Object>>> call, @NonNull Throwable t) {
                     sendEmailOtpInternal(emailVal);
                 }
             });
@@ -116,108 +163,210 @@ public class RegisterActivity extends AppCompatActivity {
         otpTimer = new CountDownTimer(60000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                sendEmailOtp.setText("Retry in " + (millisUntilFinished / 1000) + "s");
+                sendEmailOtp.setText(getString(R.string.otp_retry_timer, (millisUntilFinished / 1000)));
             }
 
             @Override
             public void onFinish() {
                 sendEmailOtp.setEnabled(true);
-                sendEmailOtp.setText("Get OTP");
+                sendEmailOtp.setText(R.string.get_otp);
             }
         }.start();
     }
 
     private void sendEmailOtpInternal(String emailVal) {
+        emailUsedForOtp = emailVal;
         Map<String, Object> body = new HashMap<>();
         body.put("email", emailVal);
         body.put("create_user", true);
 
         SupabaseConfig.getApi().sendOtp(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, body).enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful()) {
                     Toast.makeText(RegisterActivity.this, "OTP sent to " + emailVal, Toast.LENGTH_SHORT).show();
                     startTimer();
-                } else if (response.code() == 429) {
-                    Toast.makeText(RegisterActivity.this, "Too many requests. Please wait a minute.", Toast.LENGTH_LONG).show();
-                    startTimer();
                 } else {
                     sendEmailOtp.setEnabled(true);
-                    Toast.makeText(RegisterActivity.this, "Failed to send OTP: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, "Request failed. Check email or try later.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 stopProcess("Network Error: " + t.getMessage());
             }
         });
     }
 
     private void verifyAndRegister() {
+        if (emailUsedForOtp == null || emailUsedForOtp.isEmpty()) {
+            Toast.makeText(this, "Please get OTP first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String currentEmail = email.getText().toString().trim().toLowerCase();
+        if (!currentEmail.equals(emailUsedForOtp)) {
+            email.setError("Email changed. Get OTP again.");
+            return;
+        }
+
+        String token = emailOtp.getText().toString().trim();
+        if (token.isEmpty()) {
+            emailOtp.setError("Required");
+            return;
+        }
+
         progressBar.setVisibility(View.VISIBLE);
         createBtn.setEnabled(false);
 
-        Map<String, String> emailVerify = new HashMap<>();
-        emailVerify.put("email", email.getText().toString().trim());
-        emailVerify.put("token", emailOtp.getText().toString().trim());
-        emailVerify.put("type", "signup");
+        // Verification chain: signup -> magiclink -> email -> invite -> recovery
+        performVerification(emailUsedForOtp, token, "signup");
+    }
 
-        SupabaseConfig.getApi().verifyOtp(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, emailVerify).enqueue(new Callback<ResponseBody>() {
+    private void performVerification(final String emailVal, final String token, final String type) {
+        Map<String, String> emailVerify = new HashMap<>();
+        emailVerify.put("email", emailVal);
+        emailVerify.put("token", token);
+        emailVerify.put("type", type);
+
+        String authHeader = "Bearer " + SupabaseConfig.API_KEY;
+        SupabaseConfig.getApi().verifyOtp(SupabaseConfig.API_KEY, authHeader, emailVerify).enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        String responseString = response.body().string();
-                        JSONObject json = new JSONObject(responseString);
-                        currentAccessToken = json.getString("access_token");
-                        userId = json.getJSONObject("user").getString("id");
-                        finalizeAccount();
-                    } catch (Exception e) {
-                        showError("Verification error: " + e.getMessage());
-                    }
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    handleVerificationSuccess(response);
                 } else {
-                    showError("Invalid OTP or expired session.");
+                    // Fallback to different verification types
+                    switch (type) {
+                        case "signup":
+                            performVerification(emailVal, token, "magiclink");
+                            break;
+                        case "magiclink":
+                            performVerification(emailVal, token, "email");
+                            break;
+                        case "email":
+                            performVerification(emailVal, token, "invite");
+                            break;
+                        case "invite":
+                            performVerification(emailVal, token, "recovery");
+                            break;
+                        default:
+                            handleVerificationFailure(response);
+                            break;
+                    }
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 showError("Network Error: " + t.getMessage());
             }
         });
+    }
+
+    private void handleVerificationSuccess(Response<ResponseBody> response) {
+        try (ResponseBody responseBody = response.body()) {
+            if (responseBody != null) {
+                String responseString = responseBody.string();
+                JSONObject json = new JSONObject(responseString);
+                currentAccessToken = json.getString("access_token");
+                userId = json.getJSONObject("user").getString("id");
+                finalizeAccount();
+            } else {
+                showError("Empty server response.");
+            }
+        } catch (Exception e) {
+            showError("Processing error: " + e.getMessage());
+        }
+    }
+
+    private void handleVerificationFailure(Response<ResponseBody> response) {
+        String errorMsg = "Invalid OTP.";
+        try {
+            if (response.errorBody() != null) {
+                String errStr = response.errorBody().string();
+                JSONObject json = new JSONObject(errStr);
+                
+                if (json.has("error_description")) errorMsg = json.getString("error_description");
+                else if (json.has("msg")) errorMsg = json.getString("msg");
+                else if (json.has("error")) errorMsg = json.getString("error");
+
+                String lowerMsg = errorMsg.toLowerCase();
+                if (lowerMsg.contains("expired")) errorMsg = "OTP expired. Get a new one.";
+                else if (lowerMsg.contains("invalid")) errorMsg = "Invalid code. Check your email.";
+            }
+        } catch (Exception e) { /* fallback */ }
+        showError(errorMsg);
     }
 
     private void finalizeAccount() {
         Map<String, Object> update = new HashMap<>();
         update.put("password", password.getText().toString().trim());
         
-        Map<String, String> metadata = new HashMap<>();
+        Map<String, Object> metadata = new HashMap<>();
         metadata.put("full_name", fullName.getText().toString().trim());
-        metadata.put("user_type", "Student");
+        metadata.put("user_type", selectedRole);
+        metadata.put("is_approved", !selectedRole.equals("Admin")); 
+        
         update.put("data", metadata);
 
         SupabaseConfig.getApi().updateUserAuth(SupabaseConfig.API_KEY, "Bearer " + currentAccessToken, update).enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                saveProfileToBackend();
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    if (selectedRole.equals("Admin")) saveAdminToBackend();
+                    else saveProfileToBackend();
+                } else {
+                    showError("Auth update failed. Check password strength.");
+                }
             }
 
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                saveProfileToBackend();
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                if (selectedRole.equals("Admin")) saveAdminToBackend();
+                else saveProfileToBackend();
             }
         });
+    }
+
+    private void saveAdminToBackend() {
+        Map<String, Object> admin = new HashMap<>();
+        admin.put("id", userId);
+        admin.put("full_name", fullName.getText().toString().trim());
+        admin.put("admin_id", studentId.getText().toString().trim());
+        admin.put("department", studentDept.getText().toString().trim());
+        admin.put("email", emailUsedForOtp);
+        admin.put("is_approved", false);
+
+        SupabaseConfig.getApi().createAdmin(SupabaseConfig.API_KEY, "Bearer " + currentAccessToken, admin)
+            .enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                    progressBar.setVisibility(View.GONE);
+                    triggerMakeWebhook();
+                    Toast.makeText(RegisterActivity.this, "Admin Registered! Please wait for approval.", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                    progressBar.setVisibility(View.GONE);
+                    Toast.makeText(RegisterActivity.this, "Record saved. Pending admin approval.", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
     }
 
     private void saveProfileToBackend() {
         Map<String, Object> profile = new HashMap<>();
         profile.put("id", userId);
-        profile.put("email_id", email.getText().toString().trim());
+        profile.put("email_id", emailUsedForOtp);
         profile.put("full_name", fullName.getText().toString().trim());
         profile.put("mobile_number", mobile.getText().toString().trim());
-        profile.put("user_role", "Student");
+        profile.put("user_role", selectedRole);
+        profile.put("is_approved", true);
         profile.put("student_id", studentId.getText().toString().trim());
         profile.put("department", studentDept.getText().toString().trim());
         profile.put("year", academicYear.getText().toString().trim());
@@ -225,23 +374,33 @@ public class RegisterActivity extends AppCompatActivity {
         SupabaseConfig.getApi().createProfile(SupabaseConfig.API_KEY, "Bearer " + currentAccessToken, profile)
             .enqueue(new Callback<Void>() {
                 @Override
-                public void onResponse(Call<Void> call, Response<Void> response) {
+                public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
                     progressBar.setVisibility(View.GONE);
-                    if (response.isSuccessful()) {
-                        Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(RegisterActivity.this, "Profile creation failed, but account exists.", Toast.LENGTH_SHORT).show();
-                    }
+                    triggerMakeWebhook();
+                    Toast.makeText(RegisterActivity.this, "Registration Successful!", Toast.LENGTH_SHORT).show();
                     finish();
                 }
 
                 @Override
-                public void onFailure(Call<Void> call, Throwable t) {
+                public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                     progressBar.setVisibility(View.GONE);
-                    Toast.makeText(RegisterActivity.this, "Network error during profile creation", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             });
+    }
+
+    private void triggerMakeWebhook() {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("fullName", fullName.getText().toString().trim());
+        payload.put("email", emailUsedForOtp);
+        payload.put("studentId", studentId.getText().toString().trim());
+        payload.put("studentDept", studentDept.getText().toString().trim());
+        payload.put("role", selectedRole);
+
+        SupabaseConfig.getApi().triggerWebhook(SupabaseConfig.MAKE_WEBHOOK_URL, payload).enqueue(new Callback<Void>() {
+            @Override public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {}
+            @Override public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {}
+        });
     }
 
     private void showError(String msg) {
@@ -254,10 +413,17 @@ public class RegisterActivity extends AppCompatActivity {
         if (fullName.getText().toString().isEmpty()) { fullName.setError("Required"); return false; }
         if (email.getText().toString().isEmpty()) { email.setError("Required"); return false; }
         if (emailOtp.getText().toString().isEmpty()) { emailOtp.setError("Required"); return false; }
-        if (mobile.getText().toString().length() != 10) { mobile.setError("10 digits required"); return false; }
-        if (studentId.getText().toString().isEmpty()) { studentId.setError("Required"); return false; }
-        if (studentDept.getText().toString().isEmpty()) { studentDept.setError("Required"); return false; }
-        if (academicYear.getText().toString().isEmpty()) { academicYear.setError("Required"); return false; }
+        
+        if (selectedRole.equals("Student")) {
+            if (mobile.getText().toString().length() != 10) { mobile.setError("10 digits required"); return false; }
+            if (studentId.getText().toString().isEmpty()) { studentId.setError("Required"); return false; }
+            if (studentDept.getText().toString().isEmpty()) { studentDept.setError("Department Required"); return false; }
+            if (academicYear.getText().toString().isEmpty()) { academicYear.setError("Required"); return false; }
+        } else {
+            if (studentId.getText().toString().isEmpty()) { studentId.setError("Admin ID Required"); return false; }
+            if (studentDept.getText().toString().isEmpty()) { studentDept.setError("Department Required"); return false; }
+        }
+
         if (password.getText().toString().length() < 6) { password.setError("Min 6 chars"); return false; }
         if (!password.getText().toString().equals(confirmPassword.getText().toString())) {
             confirmPassword.setError("Passwords do not match");

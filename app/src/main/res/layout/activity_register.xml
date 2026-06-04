@@ -81,6 +81,34 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/logo" />
 
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/roleToggleGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                app:checkedButton="@id/btnStudent"
+                app:singleSelection="true"
+                app:selectionRequired="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStudent"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/user_role" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAdmin"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/admin_title" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
             <EditText
                 android:id="@+id/fullName"
                 android:layout_width="match_parent"
@@ -92,7 +120,7 @@
                 android:paddingEnd="16dp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textColorHint="?android:attr/textColorSecondary"
-                app:layout_constraintTop_toBottomOf="@id/title" />
+                app:layout_constraintTop_toBottomOf="@id/roleToggleGroup" />
 
             <LinearLayout
                 android:id="@+id/emailLayout"
@@ -193,6 +221,13 @@
                 android:textColorHint="?android:attr/textColorSecondary"
                 app:layout_constraintTop_toBottomOf="@id/studentDept" />
 
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/fieldsBarrier"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="academicYear,studentDept,studentId" />
+
             <EditText
                 android:id="@+id/password"
                 android:layout_width="match_parent"
@@ -205,7 +240,7 @@
                 android:paddingEnd="16dp"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textColorHint="?android:attr/textColorSecondary"
-                app:layout_constraintTop_toBottomOf="@id/academicYear" />
+                app:layout_constraintTop_toBottomOf="@id/fieldsBarrier" />
 
             <EditText
                 android:id="@+id/confirmPassword"

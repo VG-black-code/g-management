@@ -13,6 +13,9 @@ public class SupabaseConfig {
     // The Anon Public Key
     public static final String API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzdmZuZHViZmd5bW1udXZ1c2l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NTkxMjEsImV4cCI6MjA5MDUzNTEyMX0.5Ecx8NAfMSCtFhvJTpAEiZq97jVRVO10LSW0Lhjp6Qw";
 
+    // Make.com Webhook URL for Admin Approval
+    public static final String MAKE_WEBHOOK_URL = "https://hook.eu1.make.com/8bry2dnbfwbmxo717ntu67bei2by6yhh";
+
     private static SupabaseApi apiInstance = null;
 
     public static synchronized SupabaseApi getApi() {

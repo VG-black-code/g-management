@@ -163,15 +163,108 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 else if (id == R.id.nav_admin_notifications) startActivity(new Intent(this, NotificationsActivity.class));
                 else if (id == R.id.nav_users_data) startActivity(new Intent(this, UsersListActivity.class));
                 else if (id == R.id.nav_update_profile) startActivity(new Intent(this, ProfileActivity.class));
+                else if (id == R.id.nav_profile) startActivity(new Intent(this, UserDetailsActivity.class));
                 else if (id == R.id.nav_total_complaints) openComplaintsList("All");
                 else if (id == R.id.nav_pending_complaints) openComplaintsList("Pending");
                 else if (id == R.id.nav_processing_complaints) openComplaintsList("Processing");
                 else if (id == R.id.nav_resolved_complaints) openComplaintsList("Resolved");
+                else if (id == R.id.nav_help) showHelpDialog();
+                else if (id == R.id.nav_contact) showContactSupportDialog();
+                else if (id == R.id.nav_about) showAboutDialog();
+                else if (id == R.id.nav_change_password) showChangePasswordDialog();
                 else if (id == R.id.nav_logout) logout();
                 return true;
             });
             updateNavHeader();
         }
+    }
+
+    private void showAboutDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_about_app, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        dialogView.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+    }
+
+    private void showHelpDialog() {
+        String videoUrl = "https://www.youtube.com/watch?v=V1ibms88GBQ";
+        new AlertDialog.Builder(this)
+                .setTitle("Help / User Guide")
+                .setMessage("Watch our tutorial video to understand how to use the Dashboard.")
+                .setPositiveButton("Watch Video", (dialog, which) -> {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Close", null)
+                .show();
+    }
+
+    private void showContactSupportDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_contact_support, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        dialogView.findViewById(R.id.btnCall1).setOnClickListener(v -> makePhoneCall("9986916779"));
+        dialogView.findViewById(R.id.btnCall2).setOnClickListener(v -> makePhoneCall("8618927590"));
+        dialogView.findViewById(R.id.btnEmail1).setOnClickListener(v -> sendEmail("gaganashriranganath@gmail.com"));
+        dialogView.findViewById(R.id.btnEmail2).setOnClickListener(v -> sendEmail("hiremathamruta58@gmail.com"));
+        dialogView.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+    }
+
+    private void makePhoneCall(String phoneNumber) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        intent.setData(Uri.parse("tel:" + phoneNumber));
+        startActivity(intent);
+    }
+
+    private void sendEmail(String email) {
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:" + email));
+        try { startActivity(Intent.createChooser(intent, "Send Email")); }
+        catch (Exception e) { Toast.makeText(this, "No email app found", Toast.LENGTH_SHORT).show(); }
+    }
+
+    private void showChangePasswordDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_change_password, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+        EditText newPassEdit = dialogView.findViewById(R.id.newPasswordEdit);
+        EditText confirmPassEdit = dialogView.findViewById(R.id.confirmPasswordEdit);
+        Button btnSubmit = dialogView.findViewById(R.id.btnSubmit);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        btnSubmit.setOnClickListener(v -> {
+            String newPass = newPassEdit.getText().toString().trim();
+            String confirmPass = confirmPassEdit.getText().toString().trim();
+            if (newPass.isEmpty() || newPass.length() < 6) { newPassEdit.setError("Min 6 chars"); return; }
+            if (!newPass.equals(confirmPass)) { confirmPassEdit.setError("Passwords do not match"); return; }
+            updatePasswordInSupabase(newPass, dialog);
+        });
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+    }
+
+    private void updatePasswordInSupabase(String newPass, AlertDialog dialog) {
+        String token = userPrefs.getString("access_token", "");
+        if (token.isEmpty()) { Toast.makeText(this, "Session expired", Toast.LENGTH_SHORT).show(); return; }
+        SupabaseApi api = SupabaseConfig.getApi();
+        Map<String, String> body = new HashMap<>(); body.put("password", newPass);
+        api.updatePassword(SupabaseConfig.API_KEY, "Bearer " + token, body).enqueue(new Callback<Void>() {
+            @Override public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) { Toast.makeText(AdminDashboardActivity.this, "Password updated!", Toast.LENGTH_SHORT).show(); dialog.dismiss(); }
+                else Toast.makeText(AdminDashboardActivity.this, "Failed: " + response.code(), Toast.LENGTH_SHORT).show();
+            }
+            @Override public void onFailure(Call<Void> call, Throwable t) { Toast.makeText(AdminDashboardActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show(); }
+        });
     }
 
     private void setupClickListeners() {
