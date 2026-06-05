@@ -133,7 +133,8 @@
 
             <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -290,30 +291,36 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="@string/my_complaints"
+                        android:layout_marginTop="24dp"
+                        android:text="Recent History"
                         android:textColor="?android:attr/textColorPrimary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
-                    <!-- Dynamic Complaints List Container -->
-                    <LinearLayout
-                        android:id="@+id/complaintList"
+                    <!-- Horizontal Scroll for Recent History Carousel -->
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="12dp">
+                        android:layout_marginTop="12dp"
+                        android:scrollbars="none">
 
-                        <TextView
-                            android:id="@+id/noComplaintsText"
-                            android:layout_width="match_parent"
+                        <LinearLayout
+                            android:id="@+id/complaintList"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="No complaints raised yet."
-                            android:textAlignment="center"
-                            android:padding="40dp"
-                            android:textColor="?android:attr/textColorSecondary"/>
+                            android:orientation="horizontal"
+                            android:paddingBottom="12dp">
 
-                    </LinearLayout>
+                            <TextView
+                                android:id="@+id/noComplaintsText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="No complaints raised yet."
+                                android:padding="40dp"
+                                android:textColor="?android:attr/textColorSecondary"/>
+
+                        </LinearLayout>
+                    </HorizontalScrollView>
 
                 </LinearLayout>
             </ScrollView>

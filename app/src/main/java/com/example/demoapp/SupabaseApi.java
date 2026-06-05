@@ -33,7 +33,7 @@ public interface SupabaseApi {
         @Header("Content-Type") String contentType,
         @Header("x-upsert") String upsert,
         @Path("bucket") String bucket,
-        @Path("path") String path,
+        @Path(value = "path", encoded = true) String path,
         @Body RequestBody file
     );
 

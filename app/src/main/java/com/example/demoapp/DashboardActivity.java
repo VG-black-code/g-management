@@ -20,8 +20,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -31,9 +34,11 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -458,14 +463,28 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void fetchRecentIssues() {
-        String currentUserName = userPrefs.getString("name", "");
-        if (currentUserName.isEmpty()) return;
+        String userId = userPrefs.getString("user_id", "");
+        String name = userPrefs.getString("name", "");
+        String studentId = userPrefs.getString("student_id", "");
+        
+        if (userId.isEmpty() && name.isEmpty()) return;
 
         SupabaseApi api = SupabaseConfig.getApi();
         Map<String, String> filters = new HashMap<>();
-        filters.put("user_name", "eq." + currentUserName);
+        
+        if (!userId.isEmpty()) {
+            filters.put("user_id", "eq." + userId);
+        } else {
+            String fullName = name;
+            if (!studentId.isEmpty()) fullName += " / " + studentId;
+            filters.put("user_name", "eq." + fullName);
+        }
+        
+        filters.put("order", "id.desc");
+        filters.put("limit", "10");
 
-        api.getIssues(SupabaseConfig.API_KEY, "Bearer " + SupabaseConfig.API_KEY, filters)
+        String token = userPrefs.getString("access_token", "");
+        api.getIssues(SupabaseConfig.API_KEY, "Bearer " + token, filters)
                 .enqueue(new Callback<List<Issue>>() {
                     @Override
                     public void onResponse(Call<List<Issue>> call, Response<List<Issue>> response) {
@@ -482,110 +501,66 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     private void displayRecentIssues(List<Issue> issues) {
-        if (complaintList.getChildCount() > 1) {
-            complaintList.removeViews(1, complaintList.getChildCount() - 1);
+        if (complaintList == null) return;
+        
+        // Remove all items except the placeholder text
+        int count = complaintList.getChildCount();
+        for (int i = count - 1; i >= 0; i--) {
+            View child = complaintList.getChildAt(i);
+            if (child.getId() != R.id.noComplaintsText) {
+                complaintList.removeViewAt(i);
+            }
         }
 
         if (issues.isEmpty()) {
             noComplaintsText.setVisibility(View.VISIBLE);
         } else {
             noComplaintsText.setVisibility(View.GONE);
-            int count = 0;
-            for (int i = issues.size() - 1; i >= 0 && count < 3; i--) {
-                Issue issue = issues.get(i);
-                View view = getLayoutInflater().inflate(R.layout.item_complaint, complaintList, false);
+            for (Issue issue : issues) {
+                View view = getLayoutInflater().inflate(R.layout.item_recent_history, complaintList, false);
                 
-                ImageView itemImage = view.findViewById(R.id.itemImage);
-                TextView title = view.findViewById(R.id.itemTitle);
-                TextView room = view.findViewById(R.id.itemRoom);
-                TextView statusTv = view.findViewById(R.id.itemStatus);
-                TextView dateTv = view.findViewById(R.id.itemDate);
+                ImageView historyImage = view.findViewById(R.id.historyImage);
+                TextView historyTitle = view.findViewById(R.id.historyTitle);
+                TextView historyLocation = view.findViewById(R.id.historyLocation);
+                TextView historyTime = view.findViewById(R.id.historyTime);
+                View progressThumb = view.findViewById(R.id.progressThumb);
+                ConstraintLayout progressLayout = (ConstraintLayout) progressThumb.getParent();
                 
-                title.setText(issue.getProblemType());
-                room.setText("Location: " + issue.getLocation());
-                
-                String status = issue.getStatus();
-                statusTv.setText("Status: " + status);
-                
-                if (status != null) {
-                    if (status.equalsIgnoreCase("Pending")) {
-                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_pending));
-                    } else if (status.equalsIgnoreCase("Processing")) {
-                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_in_progress));
-                    } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
-                        statusTv.setTextColor(ContextCompat.getColor(this, R.color.status_resolved));
-                    }
-                }
-                
-                if (dateTv != null) {
-                    dateTv.setText("Sent: " + formatDate(issue.getCreatedAt()));
-                }
+                historyTitle.setText(issue.getProblemType());
+                historyLocation.setText("Location: " + issue.getLocation());
+                historyTime.setText(formatRelativeTime(issue.getCreatedAt()));
                 
                 if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
-                    Glide.with(this).load(issue.getPhotoUrl()).into(itemImage);
+                    Glide.with(this).load(issue.getPhotoUrl()).into(historyImage);
                 } else {
-                    itemImage.setImageResource(android.R.drawable.ic_menu_gallery);
+                    historyImage.setImageResource(android.R.drawable.ic_menu_gallery);
                 }
 
-                view.setOnClickListener(v -> showComplaintDetailDialog(issue));
+                // Update Progress Bias
+                float bias = 0.05f; // Initial Pending position
+                String status = issue.getStatus();
+                if ("Processing".equalsIgnoreCase(status)) bias = 0.5f;
+                else if ("Resolved".equalsIgnoreCase(status) || "Approved".equalsIgnoreCase(status)) bias = 1.0f;
                 
+                ConstraintSet set = new ConstraintSet();
+                set.clone(progressLayout);
+                set.setHorizontalBias(R.id.progressThumb, bias);
+                set.applyTo(progressLayout);
+
+                view.setOnClickListener(v -> showComplaintDetailDialog(issue));
                 complaintList.addView(view);
-                count++;
             }
         }
     }
 
     private void showComplaintDetailDialog(Issue issue) {
-        View view = getLayoutInflater().inflate(R.layout.dialog_complaint_details, null);
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
-
-        ((TextView) view.findViewById(R.id.detailId)).setText("CMP" + issue.getId());
-        ((TextView) view.findViewById(R.id.detailProblem)).setText(issue.getProblemType());
-        ((TextView) view.findViewById(R.id.detailDescription)).setText(issue.getDescription());
-        
-        TextView statusTv = view.findViewById(R.id.detailStatus);
-        String status = issue.getStatus();
-        statusTv.setText(status);
-
-        ImageView iconView = view.findViewById(R.id.notifIcon);
-
-        if (status != null) {
-            int color;
-            if (status.equalsIgnoreCase("Pending")) {
-                color = ContextCompat.getColor(this, R.color.status_pending);
-            } else if (status.equalsIgnoreCase("Processing")) {
-                color = ContextCompat.getColor(this, R.color.status_in_progress);
-            } else if (status.equalsIgnoreCase("Resolved") || status.equalsIgnoreCase("Approved")) {
-                color = ContextCompat.getColor(this, R.color.status_resolved);
-            } else {
-                color = ContextCompat.getColor(this, R.color.blue_primary);
-            }
-            statusTv.setTextColor(color);
-            if (iconView != null) iconView.setColorFilter(color);
-        }
-
-        ImageView detailImage = view.findViewById(R.id.detailImage);
-        if (detailImage != null) {
-            if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
-                detailImage.setVisibility(View.VISIBLE);
-                Glide.with(this).load(issue.getPhotoUrl()).placeholder(android.R.drawable.ic_menu_gallery).into(detailImage);
-                detailImage.setOnClickListener(v -> {
-                    Intent intent = new Intent(this, FullScreenImageActivity.class);
-                    intent.putExtra("image_url", issue.getPhotoUrl());
-                    startActivity(intent);
-                });
-            } else {
-                detailImage.setVisibility(View.GONE);
-            }
-        }
-
-        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.show();
+        Intent intent = new Intent(this, IssueDetailActivity.class);
+        intent.putExtra("issue_data", new Gson().toJson(issue));
+        startActivity(intent);
     }
 
-    private String formatDate(String isoString) {
-        if (isoString == null || isoString.isEmpty()) return "N/A";
+    private String formatRelativeTime(String isoString) {
+        if (isoString == null || isoString.isEmpty()) return "";
         try {
             String cleanIso = isoString;
             if (cleanIso.endsWith("Z")) cleanIso = cleanIso.substring(0, cleanIso.length() - 1);
@@ -595,11 +570,18 @@ public class DashboardActivity extends AppCompatActivity {
             inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = inputFormat.parse(cleanIso);
             
-            SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
-            outputFormat.setTimeZone(TimeZone.getDefault());
-            return outputFormat.format(date);
+            long diff = new Date().getTime() - date.getTime();
+            long seconds = diff / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            if (days > 0) return days + " days ago";
+            if (hours > 0) return hours + " hrs ago";
+            if (minutes > 0) return minutes + " mins ago";
+            return "Just now";
         } catch (Exception e) {
-            return isoString;
+            return "";
         }
     }
 

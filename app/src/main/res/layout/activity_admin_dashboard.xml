@@ -10,9 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?android:attr/windowBackground">
+        android:background="#E8EAED">
 
-        <!-- Top Header Bar -->
         <androidx.cardview.widget.CardView
             android:id="@+id/adminTopBar"
             android:layout_width="match_parent"
@@ -103,9 +102,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="8dp">
 
-                    <!-- Stats Cards Row -->
                     <GridLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -113,266 +111,140 @@
                         android:alignmentMode="alignMargins"
                         android:columnOrderPreserved="false">
 
-                        <!-- Total -->
+                        <!-- Total Complaints Card -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardTotal"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="150dp"
                             android:layout_columnWeight="1"
                             android:layout_margin="6dp"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="1dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="?attr/colorPrimary"
-                            app:cardBackgroundColor="?attr/colorSurface"
-                            android:clickable="true"
-                            android:focusable="true">
-                            <LinearLayout
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="3dp"
+                            app:cardBackgroundColor="@color/dash_blue_light">
+                            <androidx.constraintlayout.widget.ConstraintLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Complaints" android:textColor="?attr/colorPrimary" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/totalComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="?attr/colorPrimary" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                            </LinearLayout>
+                                android:layout_height="match_parent">
+                                <View android:id="@+id/t1" android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/dash_blue" app:layout_constraintTop_toTopOf="parent" android:layout_marginHorizontal="12dp" android:layout_marginTop="0dp" />
+                                <TextView android:id="@+id/l1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Total Complaints" android:textColor="@color/dash_blue" android:textStyle="bold" android:textSize="14sp" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/t1" android:layout_marginStart="14dp" android:layout_marginTop="10dp"/>
+                                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_stat_layers" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="@id/l1" android:layout_marginEnd="14dp" app:tint="@color/dash_blue"/>
+                                <TextView android:id="@+id/totalComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="13" android:textSize="36sp" android:textStyle="bold" android:textColor="@color/dash_blue" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/l1" android:layout_marginStart="14dp" android:layout_marginTop="2dp"/>
+
+                                <View android:id="@+id/b1" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/dash_blue" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginHorizontal="25dp" android:layout_marginBottom="8dp"/>
+                            </androidx.constraintlayout.widget.ConstraintLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Pending -->
+                        <!-- Pending Card -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardPending"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="150dp"
                             android:layout_columnWeight="1"
                             android:layout_margin="6dp"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="1dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="@color/status_pending"
-                            app:cardBackgroundColor="?attr/colorSurface"
-                            android:clickable="true"
-                            android:focusable="true">
-                            <LinearLayout
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="3dp"
+                            app:cardBackgroundColor="@color/dash_red_light">
+                            <androidx.constraintlayout.widget.ConstraintLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pending" android:textColor="@color/status_pending" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/pendingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_pending" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                            </LinearLayout>
+                                android:layout_height="match_parent">
+                                <View android:id="@+id/t2" android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/dash_red" app:layout_constraintTop_toTopOf="parent" android:layout_marginHorizontal="12dp"/>
+                                <TextView android:id="@+id/l2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pending" android:textColor="@color/dash_red" android:textStyle="bold" android:textSize="16sp" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/t2" android:layout_marginStart="14dp" android:layout_marginTop="10dp"/>
+                                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_stat_timer" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="@id/l2" android:layout_marginEnd="14dp" app:tint="@color/dash_red"/>
+                                <TextView android:id="@+id/pendingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textSize="36sp" android:textStyle="bold" android:textColor="@color/dash_red" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/l2" android:layout_marginStart="14dp" android:layout_marginTop="2dp"/>
+                                <ImageView android:id="@+id/g2" android:layout_width="40dp" android:layout_height="20dp" android:src="@drawable/ic_gauge" app:layout_constraintBottom_toTopOf="@id/lr2" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="14dp" />
+                                <TextView android:id="@+id/lr2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Risk Level" android:textSize="9sp" android:textColor="#888888" app:layout_constraintBottom_toTopOf="@id/b2" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="14dp" android:layout_marginBottom="10dp"/>
+                                <View android:id="@+id/b2bg" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/dash_red" android:alpha="0.2" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginHorizontal="25dp" android:layout_marginBottom="8dp"/>
+                                <View android:layout_width="35dp" android:layout_height="4dp" android:background="@color/dash_red" app:layout_constraintBottom_toBottomOf="@id/b2bg" app:layout_constraintStart_toStartOf="@id/b2bg"/>
+                                <View android:id="@+id/b2" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="8dp"/>
+                            </androidx.constraintlayout.widget.ConstraintLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Processing -->
+                        <!-- Processing Card -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardProcessing"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="150dp"
                             android:layout_columnWeight="1"
                             android:layout_margin="6dp"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="1dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="@color/status_in_progress"
-                            app:cardBackgroundColor="?attr/colorSurface"
-                            android:clickable="true"
-                            android:focusable="true">
-                            <LinearLayout
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="3dp"
+                            app:cardBackgroundColor="@color/dash_orange_light">
+                            <androidx.constraintlayout.widget.ConstraintLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Processing" android:textColor="@color/status_in_progress" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/processingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_in_progress" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                            </LinearLayout>
+                                android:layout_height="match_parent">
+                                <View android:id="@+id/t3" android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/dash_orange" app:layout_constraintTop_toTopOf="parent" android:layout_marginHorizontal="12dp"/>
+                                <TextView android:id="@+id/l3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Processing" android:textColor="@color/dash_orange" android:textStyle="bold" android:textSize="16sp" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/t3" android:layout_marginStart="14dp" android:layout_marginTop="10dp"/>
+                                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_stat_gears" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="@id/l3" android:layout_marginEnd="14dp" app:tint="@color/dash_orange"/>
+                                <TextView android:id="@+id/processingComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textSize="36sp" android:textStyle="bold" android:textColor="@color/dash_orange" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/l3" android:layout_marginStart="14dp" android:layout_marginTop="2dp"/>
+
+                                <TextView android:id="@+id/ss3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="status stream" android:textSize="9sp" android:textColor="#888888" app:layout_constraintBottom_toTopOf="@id/b3" app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="14dp" android:layout_marginBottom="10dp"/>
+                                <View android:id="@+id/b3bg" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/dash_orange" android:alpha="0.2" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginHorizontal="25dp" android:layout_marginBottom="8dp"/>
+                                <View android:layout_width="25dp" android:layout_height="4dp" android:background="@color/dash_orange" app:layout_constraintBottom_toBottomOf="@id/b3bg" app:layout_constraintStart_toStartOf="@id/b3bg"/>
+                                <View android:id="@+id/b3" android:layout_width="0dp" android:layout_height="0dp" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="8dp"/>
+                            </androidx.constraintlayout.widget.ConstraintLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Resolved -->
+                        <!-- Resolved Card -->
                         <com.google.android.material.card.MaterialCardView
                             android:id="@+id/cardResolved"
                             android:layout_width="0dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="150dp"
                             android:layout_columnWeight="1"
                             android:layout_margin="6dp"
-                            app:cardCornerRadius="10dp"
-                            app:cardElevation="1dp"
-                            app:strokeWidth="2dp"
-                            app:strokeColor="@color/status_resolved"
-                            app:cardBackgroundColor="?attr/colorSurface"
-                            android:clickable="true"
-                            android:focusable="true">
-                            <LinearLayout
+                            app:cardCornerRadius="18dp"
+                            app:cardElevation="3dp"
+                            app:cardBackgroundColor="@color/dash_green_light">
+                            <androidx.constraintlayout.widget.ConstraintLayout
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resolved" android:textColor="@color/status_resolved" android:textSize="13sp" android:textStyle="bold"/>
-                                <TextView android:id="@+id/resolvedComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/status_resolved" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="4dp"/>
-                            </LinearLayout>
+                                android:layout_height="match_parent">
+                                <View android:id="@+id/t4" android:layout_width="match_parent" android:layout_height="8dp" android:background="@color/dash_green" app:layout_constraintTop_toTopOf="parent" android:layout_marginHorizontal="12dp"/>
+                                <TextView android:id="@+id/l4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Resolved" android:textColor="@color/dash_green" android:textStyle="bold" android:textSize="16sp" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/t4" android:layout_marginStart="14dp" android:layout_marginTop="10dp"/>
+                                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_stat_resolved" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="@id/l4" android:layout_marginEnd="14dp" app:tint="@color/dash_green"/>
+                                <TextView android:id="@+id/resolvedComplaints" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textSize="36sp" android:textStyle="bold" android:textColor="@color/dash_green" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toBottomOf="@id/l4" android:layout_marginStart="14dp" android:layout_marginTop="2dp"/>
+
+                                <View android:id="@+id/b4" android:layout_width="match_parent" android:layout_height="4dp" android:background="@color/dash_green" app:layout_constraintBottom_toBottomOf="parent" android:layout_marginHorizontal="25dp" android:layout_marginBottom="8dp"/>
+                            </androidx.constraintlayout.widget.ConstraintLayout>
                         </com.google.android.material.card.MaterialCardView>
+
                     </GridLayout>
 
-                    <!-- Complaints Section -->
-                    <com.google.android.material.card.MaterialCardView
+                    <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:layout_marginHorizontal="6dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="?attr/colorSurface">
-
-                        <LinearLayout
+                        app:startIconDrawable="@android:drawable/ic_menu_search"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/adminSearchInput"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="20dp">
+                            android:hint="Search by ID or Name" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
-                                <TextView
-                                    android:id="@+id/listTitleText"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="All Complaints"
-                                    android:textColor="?android:attr/textColorPrimary"
-                                    android:textSize="20sp"
-                                    android:textStyle="bold" />
-                                <TextView
-                                    android:id="@+id/viewAllBtn"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_alignParentEnd="true"
-                                    android:layout_centerVertical="true"
-                                    android:text="View All >"
-                                    android:textColor="?attr/colorPrimary"
-                                    android:textSize="14sp"
-                                    android:background="?attr/selectableItemBackground"
-                                    android:clickable="true"
-                                    android:focusable="true" />
-                            </RelativeLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginHorizontal="6dp"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Recent Complaints" android:textSize="18sp" android:textStyle="bold"/>
+                        <TextView android:id="@+id/viewAllBtn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View All" android:textColor="?attr/colorPrimary" android:textStyle="bold" android:padding="8dp"/>
+                    </LinearLayout>
 
-                            <!-- Search Bar -->
-                            <EditText
-                                android:id="@+id/adminSearchInput"
-                                android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:layout_marginTop="20dp"
-                                android:background="@drawable/edit_text_bg_theme"
-                                android:hint="Search ID (e.g. 001)"
-                                android:imeOptions="actionSearch"
-                                android:inputType="text"
-                                android:paddingHorizontal="16dp"
-                                android:textSize="15sp"
-                                android:drawableStart="@android:drawable/ic_menu_search"
-                                android:drawablePadding="12dp"
-                                android:textColor="?android:attr/textColorPrimary"
-                                android:textColorHint="?android:attr/textColorSecondary" />
-
-                            <HorizontalScrollView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="20dp">
-
-                                <LinearLayout
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical">
-
-                                    <!-- Header Row -->
-
-                                    <LinearLayout
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:background="?attr/colorSurfaceVariant"
-                                        android:orientation="horizontal"
-                                        android:padding="12dp">
-
-                                        <TextView
-                                            android:layout_width="120dp"
-                                            android:layout_height="wrap_content"
-                                            android:text="Student Name"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <TextView
-                                            android:layout_width="100dp"
-                                            android:layout_height="wrap_content"
-                                            android:text="ID"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <TextView
-                                            android:layout_width="100dp"
-                                            android:layout_height="wrap_content"
-                                            android:text="Category"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <TextView
-                                            android:layout_width="100dp"
-                                            android:layout_height="wrap_content"
-                                            android:text="Date"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <TextView
-                                            android:layout_width="100dp"
-                                            android:layout_height="wrap_content"
-                                            android:gravity="center"
-                                            android:text="Status"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-
-                                        <TextView
-                                            android:layout_width="280dp"
-                                            android:layout_height="wrap_content"
-                                            android:gravity="center"
-                                            android:text="Action"
-                                            android:textColor="?android:attr/textColorSecondary"
-                                            android:textSize="13sp"
-                                            android:textStyle="bold" />
-                                    </LinearLayout>
-
-                                    <LinearLayout
-                                        android:id="@+id/adminComplaintList"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="vertical" />
-
-                                </LinearLayout>
-                            </HorizontalScrollView>
-
-                            <TextView
-                                android:id="@+id/adminNoDataText"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:padding="40dp"
-                                android:text="No complaints found."
-                                android:textAlignment="center"
-                                android:visibility="gone"
-                                android:textColor="?android:attr/textColorSecondary" />
-
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
+                    <LinearLayout android:id="@+id/adminComplaintList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="8dp"/>
+                    <TextView android:id="@+id/adminNoDataText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="No data" android:gravity="center" android:layout_marginTop="40dp" android:visibility="gone"/>
 
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Navigation Drawer -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/adminNavigationView"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/nav_header"
+        app:headerLayout="@layout/nav_header_admin"
         app:menu="@menu/admin_menu" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

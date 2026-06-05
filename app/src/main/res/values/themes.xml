@@ -16,6 +16,13 @@
     <!-- Default Theme (Blue) -->
     <style name="Theme.Demoapp" parent="Base.Theme.Demoapp" />
 
+    <!-- Splash Screen Theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@raw/logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Demoapp</item>
+    </style>
+
     <!-- Orange Theme -->
     <style name="Theme.Demoapp.Orange" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/orange_primary</item>

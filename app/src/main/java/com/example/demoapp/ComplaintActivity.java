@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -29,6 +30,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,7 +66,6 @@ public class ComplaintActivity extends AppCompatActivity {
 
         userPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
 
-        // Initialize Views
         studentInfoEdit = findViewById(R.id.studentInfo);
         categoryDropdown = findViewById(R.id.categoryDropdown);
         problemTypeDropdown = findViewById(R.id.problemTypeDropdown);
@@ -77,7 +78,6 @@ public class ComplaintActivity extends AppCompatActivity {
         submitBtn = findViewById(R.id.submitBtn);
         progressBar = findViewById(R.id.progressBar);
 
-        // Set Student Info (Name and Registration Student ID)
         String studentName = userPrefs.getString("name", "Unknown");
         String studentRegId = userPrefs.getString("student_id", "N/A");
         studentInfoEdit.setText(studentName + " / " + studentRegId);
@@ -86,10 +86,8 @@ public class ComplaintActivity extends AppCompatActivity {
 
         uploadImageBtn.setOnClickListener(v -> showImageSourceDialog());
         submitBtn.setOnClickListener(v -> validateAndSubmit());
-
         findViewById(R.id.backBtn).setOnClickListener(v -> finish());
 
-        // Handle category from intent
         int categoryIndex = getIntent().getIntExtra("category_index", -1);
         if (categoryIndex != -1) {
             String[] categories = getResources().getStringArray(R.array.problem_categories);
@@ -118,28 +116,16 @@ public class ComplaintActivity extends AppCompatActivity {
     private void updateProblemTypeDropdown(String category) {
         int arrayResId;
         switch (category) {
-            case "Classroom":
-                arrayResId = R.array.classroom_problems;
-                break;
-            case "Campus Facilities":
-                arrayResId = R.array.campus_facilities_problems;
-                break;
-            case "Hostel":
-                arrayResId = R.array.hostel_problems;
-                break;
-            case "Lab / IT":
-                arrayResId = R.array.lab_it_problems;
-                break;
-            case "Others":
-            default:
-                arrayResId = R.array.others_problems;
-                break;
+            case "Classroom": arrayResId = R.array.classroom_problems; break;
+            case "Campus Facilities": arrayResId = R.array.campus_facilities_problems; break;
+            case "Hostel": arrayResId = R.array.hostel_problems; break;
+            case "Lab / IT": arrayResId = R.array.lab_it_problems; break;
+            default: arrayResId = R.array.others_problems; break;
         }
-
         String[] problemTypes = getResources().getStringArray(arrayResId);
         ArrayAdapter<String> probAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, problemTypes);
         problemTypeDropdown.setAdapter(probAdapter);
-        problemTypeDropdown.setText("", false); // Clear previous selection
+        problemTypeDropdown.setText("", false);
     }
 
     private void showImageSourceDialog() {
@@ -172,24 +158,16 @@ public class ComplaintActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 100 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            openCamera();
-        }
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && data != null) {
-            if (requestCode == PICK_IMAGE_REQUEST) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == PICK_IMAGE_REQUEST && data != null) {
                 imageUri = data.getData();
                 selectedImage.setImageURI(imageUri);
                 selectedImage.setVisibility(View.VISIBLE);
                 imageStatusText.setText("Image selected!");
                 cameraBitmap = null;
-            } else if (requestCode == CAMERA_REQUEST) {
+            } else if (requestCode == CAMERA_REQUEST && data != null && data.getExtras() != null) {
                 cameraBitmap = (Bitmap) data.getExtras().get("data");
                 selectedImage.setImageBitmap(cameraBitmap);
                 selectedImage.setVisibility(View.VISIBLE);
@@ -229,20 +207,21 @@ public class ComplaintActivity extends AppCompatActivity {
     private void uploadImageAndSubmit(String category, String problemType, String location, String desc) {
         try {
             byte[] imageData;
-            if (imageUri != null) {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                imageData = getBytesFromBitmap(bitmap);
-            } else {
-                imageData = getBytesFromBitmap(cameraBitmap);
+            if (imageUri != null) imageData = getBytesFromUri(imageUri);
+            else imageData = getBytesFromBitmap(cameraBitmap);
+
+            if (imageData == null) {
+                postToDatabase(category, problemType, location, desc, null);
+                return;
             }
 
-            String fileName = UUID.randomUUID().toString() + ".jpg";
-            String bucket = "complaint-images";
-            String path = "issues/" + fileName;
+            // Using format from your screenshot: complaint_TIMESTAMP.jpg
+            String fileName = "complaint_" + System.currentTimeMillis() + ".jpg";
+            String bucket = "complaints"; 
+            String path = fileName;
 
             SupabaseApi api = SupabaseConfig.getApi();
             RequestBody requestBody = RequestBody.create(MediaType.parse("image/jpeg"), imageData);
-
             String authHeader = "Bearer " + userPrefs.getString("access_token", "");
 
             api.uploadImage(SupabaseConfig.API_KEY, authHeader, "image/jpeg", "true", bucket, path, requestBody)
@@ -250,29 +229,44 @@ public class ComplaintActivity extends AppCompatActivity {
                         @Override
                         public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                             if (response.isSuccessful()) {
-                                String publicUrl = SupabaseConfig.URL + "storage/v1/object/public/" + bucket + "/" + path;
+                                String baseUrl = SupabaseConfig.URL;
+                                if (baseUrl.endsWith("/")) baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                                String publicUrl = baseUrl + "/storage/v1/object/public/" + bucket + "/" + path;
+                                Log.d(TAG, "Upload successful. Public URL: " + publicUrl);
                                 postToDatabase(category, problemType, location, desc, publicUrl);
                             } else {
-                                Log.e(TAG, "Upload failed: " + response.code());
+                                Log.e(TAG, "Upload failed. Code: " + response.code());
                                 postToDatabase(category, problemType, location, desc, null);
                             }
                         }
-
                         @Override
                         public void onFailure(Call<ResponseBody> call, Throwable t) {
-                            Log.e(TAG, "Upload Error: " + t.getMessage());
+                            Log.e(TAG, "Upload failed. Error: " + t.getMessage());
                             postToDatabase(category, problemType, location, desc, null);
                         }
                     });
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e(TAG, "Exception during upload setup: " + e.getMessage());
             postToDatabase(category, problemType, location, desc, null);
         }
     }
 
+    private byte[] getBytesFromUri(Uri uri) throws IOException {
+        InputStream inputStream = getContentResolver().openInputStream(uri);
+        if (inputStream == null) return null;
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        inputStream.close();
+        return getBytesFromBitmap(bitmap);
+    }
+
     private byte[] getBytesFromBitmap(Bitmap bitmap) {
+        if (bitmap == null) return null;
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int maxWidth = 1024, maxHeight = 1024;
+        float ratio = Math.min((float) maxWidth / bitmap.getWidth(), (float) maxHeight / bitmap.getHeight());
+        if (ratio < 1.0f) {
+            bitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmap.getWidth() * ratio), (int) (bitmap.getHeight() * ratio), true);
+        }
         bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
         return stream.toByteArray();
     }
@@ -285,11 +279,7 @@ public class ComplaintActivity extends AppCompatActivity {
         issue.setDescription(desc);
         issue.setPhotoUrl(photoUrl);
         issue.setStatus("Pending");
-        
-        String studentName = userPrefs.getString("name", "Unknown");
-        String studentId = userPrefs.getString("student_id", "");
-        issue.setUserName(studentName + " / " + studentId);
-        
+        issue.setUserName(userPrefs.getString("name", "Unknown") + " / " + userPrefs.getString("student_id", ""));
         issue.setUserId(userPrefs.getString("user_id", ""));
 
         SupabaseApi api = SupabaseConfig.getApi();
@@ -299,48 +289,40 @@ public class ComplaintActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Issue>> call, Response<List<Issue>> response) {
                 progressBar.setVisibility(View.GONE);
-                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
-                    Issue savedIssue = response.body().get(0);
+                if (response.isSuccessful()) {
+                    if (response.body() != null && !response.body().isEmpty()) {
+                        sendAdminNotification(response.body().get(0));
+                    }
                     Toast.makeText(ComplaintActivity.this, "Complaint Submitted Successfully", Toast.LENGTH_LONG).show();
-                    sendNotificationToAdmin(category, problemType, location, savedIssue.getId());
                     finish();
                 } else {
                     submitBtn.setEnabled(true);
-                    Toast.makeText(ComplaintActivity.this, "Failed to submit: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ComplaintActivity.this, "Error saving data.", Toast.LENGTH_SHORT).show();
                 }
             }
-
             @Override
             public void onFailure(Call<List<Issue>> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 submitBtn.setEnabled(true);
-                Toast.makeText(ComplaintActivity.this, "Network Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void sendNotificationToAdmin(String category, String problemType, String location, Long issueId) {
-        String studentName = userPrefs.getString("name", "A student");
-        Notification notification = new Notification();
-        notification.setTitle("New Complaint Filed");
-        notification.setMessage(studentName + " reported: " + problemType + " in " + category + " at " + location);
-        notification.setUserName("Admin"); // Target admin
-        notification.setRead(false);
-        notification.setIssueId(issueId);
-
-        SupabaseApi api = SupabaseConfig.getApi();
+    private void sendAdminNotification(Issue issue) {
+        String studentName = userPrefs.getString("name", "Student");
+        Notification notification = new Notification("Admin", "New Complaint Raised", 
+                "A new " + issue.getCategory() + " complaint has been raised by " + studentName, 
+                issue.getId());
+        
         String authHeader = "Bearer " + userPrefs.getString("access_token", "");
-
-        api.sendNotification(SupabaseConfig.API_KEY, authHeader, notification).enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                Log.d(TAG, "Admin notified with issue ID: " + issueId);
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e(TAG, "Failed to notify admin");
-            }
-        });
+        SupabaseConfig.getApi().sendNotification(SupabaseConfig.API_KEY, authHeader, notification)
+                .enqueue(new Callback<Void>() {
+                    @Override public void onResponse(Call<Void> call, Response<Void> response) {
+                        Log.d(TAG, "Admin notification sent successfully");
+                    }
+                    @Override public void onFailure(Call<Void> call, Throwable t) {
+                        Log.e(TAG, "Failed to send admin notification", t);
+                    }
+                });
     }
 }

@@ -6,336 +6,263 @@
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground">
 
-    <!-- Header with X button -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/detailHeader"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:paddingHorizontal="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Complaint Details"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:id="@+id/closeBtn"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="4dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="?android:attr/textColorPrimary" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/detailHeader">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <com.google.android.material.card.MaterialCardView
+            <ImageView
+                android:id="@+id/detailImage"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="?attr/colorSurface"
-                android:layout_marginBottom="16dp">
-
-                <ImageView
-                    android:id="@+id/detailImage"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_gallery" />
-            </com.google.android.material.card.MaterialCardView>
+                android:layout_height="250dp"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_gallery" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/detailTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Problem Title"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="?android:attr/textColorPrimary" />
-
-                <TextView
-                    android:id="@+id/detailComplaintId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="#CMP000"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorPrimary"
-                    android:background="@android:color/transparent"
-                    android:padding="4dp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/detailDateTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="01 Jan, 12:00 PM"
-                android:textSize="12sp"
-                android:layout_marginTop="4dp"
-                android:textColor="?android:attr/textColorSecondary" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?android:attr/dividerVertical"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:id="@+id/labelStudentName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Student Name / ID"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary" />
-            <TextView
-                android:id="@+id/detailStudentName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="John Doe / 12345"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorPrimary"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Category"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary" />
-            <TextView
-                android:id="@+id/detailCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Classroom"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorPrimary"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Location"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary" />
-            <TextView
-                android:id="@+id/detailLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="A Block - Room 101"
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorPrimary"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Description"
-                android:textSize="14sp"
-                android:textColor="?android:attr/textColorSecondary" />
-            <TextView
-                android:id="@+id/detailDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Detailed description of the issue goes here..."
-                android:textSize="16sp"
-                android:textColor="?android:attr/textColorPrimary"
-                android:layout_marginBottom="24dp" />
-
-            <!-- Status History Section -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorSurface">
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
                     <TextView
+                        android:id="@+id/detailTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Electricity"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="?android:attr/textColorPrimary" />
+
+                    <TextView
+                        android:id="@+id/detailComplaintId"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Complaint Status History"
+                        android:text="#CMP3"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textSize="16sp"
-                        android:textColor="?attr/colorPrimary"
-                        android:layout_marginBottom="16dp" />
-
-                    <!-- Current Status Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="12dp">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Current Status:"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:textColor="?android:attr/textColorPrimary"/>
-                        <TextView
-                            android:id="@+id/detailStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Pending"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/status_in_progress" />
-                    </LinearLayout>
-
-                    <!-- Raised At Row -->
-                    <LinearLayout
-                        android:id="@+id/layoutRaised"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="12dp">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Raised At:"
-                            android:textSize="14sp"
-                            android:textColor="?android:attr/textColorPrimary"/>
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end">
-                            <TextView
-                                android:id="@+id/detailRaisedDate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                            <TextView
-                                android:id="@+id/detailRaisedTime"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Processing Row -->
-                    <LinearLayout
-                        android:id="@+id/layoutProcessing"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="12dp"
-                        android:visibility="gone">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Admin Accepted:"
-                            android:textSize="14sp"
-                            android:textColor="?android:attr/textColorPrimary"/>
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end">
-                            <TextView
-                                android:id="@+id/detailProcessingDate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                            <TextView
-                                android:id="@+id/detailProcessingTime"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="?android:attr/textColorSecondary" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Resolved Row -->
-                    <LinearLayout
-                        android:id="@+id/layoutResolved"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Admin Resolved:"
-                            android:textSize="14sp"
-                            android:textColor="?android:attr/textColorPrimary"/>
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end">
-                            <TextView
-                                android:id="@+id/detailResolvedDate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="@color/status_resolved"
-                                android:textStyle="bold" />
-                            <TextView
-                                android:id="@+id/detailResolvedTime"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-"
-                                android:textSize="13sp"
-                                android:textColor="@color/status_resolved"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-
+                        android:textColor="#2196F3" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
+                <TextView
+                    android:id="@+id/detailDateTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Raised on: 08 Apr 2026, 07:52 pm"
+                    android:textSize="14sp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="?android:attr/textColorSecondary" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EEEEEE"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Category"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary" />
+                <TextView
+                    android:id="@+id/detailCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hostel"
+                    android:textSize="18sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Location"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary" />
+                <TextView
+                    android:id="@+id/detailLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="A Block - a2"
+                    android:textSize="18sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Description"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary" />
+                <TextView
+                    android:id="@+id/detailDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="no light"
+                    android:textSize="18sp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:layout_marginBottom="32dp" />
+
+                <Button
+                    android:id="@+id/backBtn"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Back"
+                    android:textAllCaps="false"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="#03A9F4"
+                    app:cornerRadius="28dp"
+                    android:layout_marginBottom="32dp" />
+
+                <!-- Status History Section -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="#F8F9FA">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Complaint Status History"
+                            android:textStyle="bold"
+                            android:textSize="18sp"
+                            android:textColor="#03A9F4"
+                            android:layout_marginBottom="20dp" />
+
+                        <!-- Current Status Row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Current Status:"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="?android:attr/textColorPrimary"/>
+                            <TextView
+                                android:id="@+id/detailStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Resolved"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFA726" />
+                        </LinearLayout>
+
+                        <!-- Raised At Row -->
+                        <LinearLayout
+                            android:id="@+id/layoutRaised"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Raised At:"
+                                android:textSize="16sp"
+                                android:textColor="?android:attr/textColorPrimary"/>
+                            <TextView
+                                android:id="@+id/detailRaisedDateTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="08 Apr 2026\n07:52 pm"
+                                android:textSize="15sp"
+                                android:gravity="end"
+                                android:textColor="?android:attr/textColorSecondary" />
+                        </LinearLayout>
+
+                        <!-- Processing Row -->
+                        <LinearLayout
+                            android:id="@+id/layoutProcessing"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp"
+                            android:visibility="gone">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Admin Accepted:"
+                                android:textSize="16sp"
+                                android:textColor="?android:attr/textColorPrimary"/>
+                            <TextView
+                                android:id="@+id/detailProcessingDateTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="08 Apr 2026\n08:20 pm"
+                                android:textSize="15sp"
+                                android:gravity="end"
+                                android:textColor="?android:attr/textColorSecondary" />
+                        </LinearLayout>
+
+                        <!-- Resolved Row -->
+                        <LinearLayout
+                            android:id="@+id/layoutResolved"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Admin Resolved:"
+                                android:textSize="16sp"
+                                android:textColor="?android:attr/textColorPrimary"/>
+                            <TextView
+                                android:id="@+id/detailResolvedDateTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="08 Apr 2026\n08:22 pm"
+                                android:textSize="15sp"
+                                android:gravity="end"
+                                android:textStyle="bold"
+                                android:textColor="#4CAF50" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Hidden elements to maintain Java compatibility if any -->
+                <TextView android:id="@+id/detailStudentName" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <View android:id="@+id/labelStudentName" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailRaisedDate" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailRaisedTime" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailProcessingDate" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailProcessingTime" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailResolvedDate" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+                <TextView android:id="@+id/detailResolvedTime" android:layout_width="0dp" android:layout_height="0dp" android:visibility="gone" />
+
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

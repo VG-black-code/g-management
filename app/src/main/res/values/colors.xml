@@ -3,6 +3,16 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <!-- Dashboard Image Colors -->
+    <color name="dash_blue">#2E5B9A</color>
+    <color name="dash_red">#C00000</color>
+    <color name="dash_orange">#ED7D31</color>
+    <color name="dash_green">#70AD47</color>
+    <color name="dash_blue_light">#F5F9FF</color>
+    <color name="dash_red_light">#FFF5F5</color>
+    <color name="dash_orange_light">#FFFBF5</color>
+    <color name="dash_green_light">#F5FFF7</color>
+
     <!-- Gaming Colors -->
     <color name="gaming_neon_green">#39FF14</color>
     <color name="gaming_neon_cyan">#00FFFF</color>

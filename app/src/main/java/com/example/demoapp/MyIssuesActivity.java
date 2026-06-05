@@ -3,7 +3,6 @@ package com.example.demoapp;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,7 +11,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
@@ -159,7 +157,7 @@ public class MyIssuesActivity extends AppCompatActivity {
                     status.setTextColor(ContextCompat.getColor(this, R.color.status_pending));
                 } else if (statusText.equalsIgnoreCase("Processing")) {
                     status.setTextColor(ContextCompat.getColor(this, R.color.status_in_progress));
-                } else if (statusText.equalsIgnoreCase("Resolved")) {
+                } else if (statusText.equalsIgnoreCase("Resolved") || statusText.equalsIgnoreCase("Approved")) {
                     status.setTextColor(ContextCompat.getColor(this, R.color.status_resolved));
                 }
             }
@@ -172,70 +170,15 @@ public class MyIssuesActivity extends AppCompatActivity {
                 itemImage.setImageResource(android.R.drawable.ic_menu_gallery);
             }
 
-            view.setOnClickListener(v -> showComplaintDetailDialog(issue));
+            view.setOnClickListener(v -> showComplaintDetail(issue));
             issuesContainer.addView(view);
         }
     }
 
-    private void showComplaintDetailDialog(Issue issue) {
-        View view = getLayoutInflater().inflate(R.layout.dialog_complaint_details, null);
-        AlertDialog dialog = new AlertDialog.Builder(this).setView(view).setCancelable(true).create();
-
-        ((TextView) view.findViewById(R.id.detailId)).setText("CMP" + issue.getId());
-        ((TextView) view.findViewById(R.id.detailProblem)).setText(issue.getProblemType());
-        ((TextView) view.findViewById(R.id.detailDescription)).setText(issue.getDescription());
-        
-        TextView statusTv = view.findViewById(R.id.detailStatus);
-        String status = issue.getStatus();
-        statusTv.setText(status);
-
-        ImageView iconView = view.findViewById(R.id.notifIcon);
-
-        if (status != null) {
-            int color;
-            if (status.equalsIgnoreCase("Pending")) {
-                color = ContextCompat.getColor(this, R.color.status_pending);
-            } else if (status.equalsIgnoreCase("Processing")) {
-                color = ContextCompat.getColor(this, R.color.status_in_progress);
-            } else if (status.equalsIgnoreCase("Resolved")) {
-                color = ContextCompat.getColor(this, R.color.status_resolved);
-            } else {
-                color = ContextCompat.getColor(this, R.color.lavender_primary);
-            }
-            statusTv.setTextColor(color);
-            if (iconView != null) iconView.setColorFilter(color);
-        }
-
-        ImageView detailImage = view.findViewById(R.id.detailImage);
-        if (detailImage != null) {
-            if (issue.getPhotoUrl() != null && !issue.getPhotoUrl().isEmpty()) {
-                detailImage.setVisibility(View.VISIBLE);
-                Glide.with(this).load(issue.getPhotoUrl()).placeholder(android.R.drawable.ic_menu_gallery).into(detailImage);
-                detailImage.setOnClickListener(v -> {
-                    Intent intent = new Intent(this, FullScreenImageActivity.class);
-                    intent.putExtra("image_url", issue.getPhotoUrl());
-                    startActivity(intent);
-                });
-            } else {
-                detailImage.setVisibility(View.GONE);
-            }
-        }
-
-        view.findViewById(R.id.btnClose).setOnClickListener(v -> dialog.dismiss());
-        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.show();
-    }
-
-    private String formatFullDateTime(String isoString) {
-        if (isoString == null || isoString.isEmpty()) return "-";
-        try {
-            String cleanIso = isoString.endsWith("Z") ? isoString.substring(0, isoString.length() - 1) : isoString;
-            String pattern = cleanIso.contains(".") ? "yyyy-MM-dd'T'HH:mm:ss.SSS" : "yyyy-MM-dd'T'HH:mm:ss";
-            SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.getDefault());
-            inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date date = inputFormat.parse(cleanIso);
-            return new SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(date);
-        } catch (Exception e) { return isoString; }
+    private void showComplaintDetail(Issue issue) {
+        Intent intent = new Intent(this, IssueDetailActivity.class);
+        intent.putExtra("issue_data", new Gson().toJson(issue));
+        startActivity(intent);
     }
 
     private String formatDateShort(String isoString) {
@@ -246,7 +189,9 @@ public class MyIssuesActivity extends AppCompatActivity {
             SimpleDateFormat inputFormat = new SimpleDateFormat(pattern, Locale.getDefault());
             inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             Date date = inputFormat.parse(cleanIso);
-            return new SimpleDateFormat("MMM dd", Locale.getDefault()).format(date);
+            SimpleDateFormat outputFormat = new SimpleDateFormat("MMM dd", Locale.getDefault());
+            outputFormat.setTimeZone(TimeZone.getDefault());
+            return outputFormat.format(date);
         } catch (Exception e) { return isoString; }
     }
 

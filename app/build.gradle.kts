@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.face.detection)
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("androidx.core:core-splashscreen:1.2.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
