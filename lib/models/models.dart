@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class Issue {
@@ -21,7 +22,6 @@ class Issue {
   final String? currentAuthorityRole; 
   final String? assignedTo;
   final String? createdAt;
-  final String? updatedAt;
   final String? processingAt;
   final String? resolvedAt;
 
@@ -46,7 +46,6 @@ class Issue {
     this.currentAuthorityRole,
     this.assignedTo,
     this.createdAt,
-    this.updatedAt,
     this.processingAt,
     this.resolvedAt,
   });
@@ -73,7 +72,6 @@ class Issue {
       currentAuthorityRole: (json['current_authority_role'] ?? json['CurrentAuthorityRole'] ?? json['current_author'])?.toString(),
       assignedTo: (json['assigned_to'] ?? json['AssignedTo'] ?? json['assigned_staff'])?.toString(),
       createdAt: (json['created_at'] ?? json['CreatedAt'])?.toString(),
-      updatedAt: (json['updated_at'] ?? json['UpdatedAt'])?.toString(),
       processingAt: (json['processing_at'] ?? json['ProcessingAt'])?.toString(),
       resolvedAt: (json['resolved_at'] ?? json['ResolvedAt'])?.toString(),
     );
@@ -130,9 +128,9 @@ class ComplaintHistory {
     return ComplaintHistory(
       id: json['id'],
       issueId: json['issue_id'] ?? json['IssueID'],
-      performedByName: (json['performed_by_name'] ?? json['PerformedByName'])?.toString(),
+      performedByName: (json['performed_by_name'] ?? json['PerformedByName'] ?? json['performed_by_'])?.toString(),
       performedByRole: (json['performed_by_role'] ?? json['PerformedByRole'])?.toString(),
-      toAuthorityRole: (json['to_authority_role'] ?? json['ToAuthorityRole'])?.toString(),
+      toAuthorityRole: (json['to_authority_role'] ?? json['ToAuthorityRole'] ?? json['to_authority_ro'])?.toString(),
       action: (json['action'] ?? json['Action'])?.toString(),
       status: (json['status'] ?? json['Status'])?.toString(),
       comment: (json['comment'] ?? json['Comment'])?.toString(),
@@ -143,9 +141,9 @@ class ComplaintHistory {
   Map<String, dynamic> toJson() {
     return {
       'issue_id': issueId,
-      if (performedByName != null) 'performed_by_name': performedByName,
-      if (performedByRole != null) 'performed_by_role': performedByRole,
-      if (toAuthorityRole != null) 'to_authority_role': toAuthorityRole,
+      'performed_by_name': performedByName,
+      'performed_by_role': performedByRole,
+      'to_authority_role': toAuthorityRole,
       'action': action,
       'status': status,
       'comment': comment,
@@ -162,6 +160,7 @@ class UserProfile {
   final String? userRole; 
   final String? studentId;
   final String? facultyId;
+  final String? adminId;
   final String? department; 
   final String? course;
   final String? program;
@@ -170,7 +169,6 @@ class UserProfile {
   final String? semester;
   final String? collegeName;
   final String? dob;
-  final String? adminId;
   final String? position;
   final String? designation;
   final String? profileImage;
@@ -188,6 +186,7 @@ class UserProfile {
     this.userRole,
     this.studentId,
     this.facultyId,
+    this.adminId,
     this.department,
     this.course,
     this.program,
@@ -196,7 +195,6 @@ class UserProfile {
     this.semester,
     this.collegeName,
     this.dob,
-    this.adminId,
     this.position,
     this.designation,
     this.profileImage,
@@ -215,7 +213,8 @@ class UserProfile {
       gender: (json['gender'] ?? json['Gender'] ?? json['sex'])?.toString(),
       userRole: (json['user_role'] ?? json['role'] ?? json['Role'])?.toString(),
       studentId: (json['student_id'] ?? json['StudentID'])?.toString(),
-      facultyId: (json['faculty_id'] ?? json['FacultyID'] ?? json['EmployeeID'])?.toString(),
+      facultyId: (json['faculty_id'] ?? json['EmployeeID'] ?? json['faculty_id'])?.toString(),
+      adminId: (json['admin_id'] ?? json['AdminID'])?.toString(),
       department: (json['department'] ?? json['Department'])?.toString(),
       course: (json['course'] ?? json['Course'])?.toString(),
       program: (json['program'] ?? json['Program'])?.toString(),
@@ -224,12 +223,11 @@ class UserProfile {
       semester: (json['semester'] ?? json['Semester'])?.toString(),
       collegeName: (json['college_name'] ?? json['CollegeName'])?.toString(),
       dob: (json['dob'] ?? json['DOB'] ?? json['date_of_birth'])?.toString(),
-      adminId: (json['admin_id'] ?? json['AdminID'])?.toString(),
       position: (json['position'] ?? json['Position'])?.toString(),
       designation: (json['designation'] ?? json['Designation'])?.toString(),
       profileImage: (json['profile_image'] ?? json['ProfileImage'])?.toString(),
       joiningDate: (json['joining_date'] ?? json['JoiningDate'])?.toString(),
-      isApproved: json['is_approved'] == true || json['is_approved'] == 1 || json['is_approved']?.toString().toLowerCase() == 'true' || json['IsApproved'] == true,
+      isApproved: json['is_approved'] == true || json['is_approved'] == 1 || json['is_approved']?.toString().toLowerCase() == 'true' || json['IsApproved'] == true || json['Status'] == 'approved',
       isActive: json['is_active'] != false && json['is_active'] != 0 && json['is_active']?.toString().toLowerCase() != 'false' && json['IsActive'] != false,
       assignedDepartments: json['assigned_departments'] != null 
           ? List<String>.from(json['assigned_departments']) 
@@ -249,6 +247,7 @@ class UserProfile {
       'is_active': isActive,
       if (studentId != null) 'student_id': studentId,
       if (facultyId != null) 'faculty_id': facultyId,
+      if (adminId != null) 'admin_id': adminId,
       if (department != null) 'department': department,
       if (course != null) 'course': course,
       if (program != null) 'program': program,
@@ -257,12 +256,49 @@ class UserProfile {
       if (semester != null) 'semester': semester,
       if (collegeName != null) 'college_name': collegeName,
       if (dob != null) 'dob': dob,
-      if (adminId != null) 'admin_id': adminId,
       if (position != null) 'position': position,
       if (designation != null) 'designation': designation,
       if (profileImage != null) 'profile_image': profileImage,
       if (joiningDate != null) 'joining_date': joiningDate,
       if (assignedDepartments != null) 'assigned_departments': assignedDepartments,
+    };
+  }
+}
+
+class FacultyProfile {
+  final String id;
+  final String fullName;
+  final String email;
+  final String mobileNumber;
+  final String employeeId;
+  final String department;
+  final String role;
+  final String status;
+  final String? profileImage;
+
+  FacultyProfile({
+    required this.id,
+    required this.fullName,
+    required this.email,
+    required this.mobileNumber,
+    required this.employeeId,
+    required this.department,
+    required this.role,
+    this.status = 'pending',
+    this.profileImage,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'FullName': fullName,
+      'Email': email,
+      'MobileNumber': mobileNumber,
+      'EmployeeID': employeeId,
+      'Department': department,
+      'role': role,
+      'Status': status,
+      if (profileImage != null) 'profile_image': profileImage,
     };
   }
 }
@@ -275,7 +311,8 @@ class AppNotification {
   final bool isRead;
   final String? createdAt;
   final int? issueId;
-  final String? changes;
+  final String? targetRole;
+  final String? department;
 
   AppNotification({
     this.id,
@@ -285,7 +322,8 @@ class AppNotification {
     this.isRead = false,
     this.createdAt,
     this.issueId,
-    this.changes,
+    this.targetRole,
+    this.department,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
@@ -297,7 +335,8 @@ class AppNotification {
       isRead: json['is_read'] == true || json['is_read'] == 1 || json['is_read']?.toString().toLowerCase() == 'true',
       createdAt: (json['created_at'] ?? json['CreatedAt'])?.toString(),
       issueId: json['issue_id'] ?? json['IssueID'],
-      changes: (json['changes'] ?? json['Changes'])?.toString(),
+      targetRole: (json['target_role'] ?? json['TargetRole'])?.toString(),
+      department: (json['department'] ?? json['Department'])?.toString(),
     );
   }
 
@@ -309,7 +348,8 @@ class AppNotification {
       'message': message,
       'is_read': isRead,
       if (issueId != null) 'issue_id': issueId,
-      if (changes != null) 'changes': changes,
+      if (targetRole != null) 'target_role': targetRole,
+      if (department != null) 'department': department,
     };
   }
 }

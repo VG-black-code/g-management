@@ -20,7 +20,6 @@ class ComplaintsProvider extends ChangeNotifier {
   bool get isUpdating => _isUpdating;
   String? get error => _error;
 
-  /// Fetch complaints with support for institution-wide data (Principal/Admin)
   Future<void> fetchComplaints({
     required String role,
     String? dept,
@@ -40,8 +39,8 @@ class ComplaintsProvider extends ChangeNotifier {
       var query = client.from('issues').select();
       final normalizedRole = role.toLowerCase();
 
-      if (allInstitution || normalizedRole == 'admin') {
-         // Admin sees everything
+      if (normalizedRole == 'admin') {
+         query = query.eq('category', 'General').eq('current_authority_role', 'Admin');
       } else if (normalizedRole == 'student') {
         if (userId != null) query = query.eq('user_id', userId);
       } 
@@ -67,14 +66,12 @@ class ComplaintsProvider extends ChangeNotifier {
       _applyFilters();
     } catch (e) {
       _error = e.toString();
-      debugPrint('Fetch Error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Restore the missing search method
   void setSearchQuery(String query) {
     _searchQuery = query.toLowerCase();
     _applyFilters();
@@ -100,13 +97,13 @@ class ComplaintsProvider extends ChangeNotifier {
 
     try {
       final now = DateTime.now().toUtc().toIso8601String();
-      final updates = {
+      final Map<String, dynamic> updates = {
         'status': newStatus,
-        'updated_at': now,
-        if (newStatus == 'PROCESSING') 'processing_at': now,
-        if (newStatus == 'RESOLVED') 'resolved_at': now,
-        if (newStatus == 'PROCESSING' && userId != null) 'current_authority_id': userId,
       };
+      
+      if (newStatus == 'PROCESSING') updates['processing_at'] = now;
+      if (newStatus == 'RESOLVED') updates['resolved_at'] = now;
+      if (newStatus == 'PROCESSING' && userId != null) updates['current_authority_id'] = userId;
 
       await Supabase.instance.client.from('issues').update(updates).eq('id', issue.id!);
 
@@ -120,7 +117,41 @@ class ComplaintsProvider extends ChangeNotifier {
         'created_at': now,
       });
 
-      _sendNotification(issue.userName ?? 'Student', 'Complaint Update', 'Your complaint (CMP${issue.id}) is now $newStatus.', issue.id!);
+      // Update local state to reflect changes immediately
+      final index = _allIssues.indexWhere((e) => e.id == issue.id);
+      if (index != -1) {
+        final existing = _allIssues[index];
+        _allIssues[index] = Issue(
+          id: existing.id,
+          complaintId: existing.complaintId,
+          userId: existing.userId,
+          userName: existing.userName,
+          usn: existing.usn,
+          department: existing.department,
+          course: existing.course,
+          year: existing.year,
+          section: existing.section,
+          category: existing.category,
+          problemType: existing.problemType,
+          description: existing.description,
+          location: existing.location,
+          photoUrl: existing.photoUrl,
+          status: newStatus,
+          priority: existing.priority,
+          currentAuthorityId: newStatus == 'PROCESSING' ? (userId ?? existing.currentAuthorityId) : existing.currentAuthorityId,
+          currentAuthorityRole: existing.currentAuthorityRole,
+          assignedTo: existing.assignedTo,
+          createdAt: existing.createdAt,
+          processingAt: newStatus == 'PROCESSING' ? now : existing.processingAt,
+          resolvedAt: newStatus == 'RESOLVED' ? now : existing.resolvedAt,
+        );
+        _applyFilters();
+      }
+
+      if (issue.userId != null) {
+        await sendNotificationToUser(issue.userId!, 'Complaint Update', 'Your complaint (CMP${issue.id}) is now $newStatus.', issue.id!);
+      }
+      
       return true;
     } catch (e) {
       _error = e.toString();
@@ -139,12 +170,13 @@ class ComplaintsProvider extends ChangeNotifier {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
       
-      await Supabase.instance.client.from('issues').update({
+      final Map<String, dynamic> updates = {
         'current_authority_role': nextRole,
         'current_authority_id': null,
         'status': 'FORWARDED',
-        'updated_at': now,
-      }).eq('id', issue.id!);
+      };
+
+      await Supabase.instance.client.from('issues').update(updates).eq('id', issue.id!);
 
       await Supabase.instance.client.from('complaint_history').insert({
         'issue_id': issue.id,
@@ -156,11 +188,42 @@ class ComplaintsProvider extends ChangeNotifier {
         'created_at': now,
       });
 
-      _sendNotification(issue.userName ?? 'Student', 'Grievance Escalated', 'Your complaint CMP${issue.id} has been forwarded to $nextRole.', issue.id!);
+      // Update local state
+      final index = _allIssues.indexWhere((e) => e.id == issue.id);
+      if (index != -1) {
+         final existing = _allIssues[index];
+        _allIssues[index] = Issue(
+          id: existing.id,
+          complaintId: existing.complaintId,
+          userId: existing.userId,
+          userName: existing.userName,
+          usn: existing.usn,
+          department: existing.department,
+          course: existing.course,
+          year: existing.year,
+          section: existing.section,
+          category: existing.category,
+          problemType: existing.problemType,
+          description: existing.description,
+          location: existing.location,
+          photoUrl: existing.photoUrl,
+          status: 'FORWARDED',
+          priority: existing.priority,
+          currentAuthorityId: null,
+          currentAuthorityRole: nextRole,
+          assignedTo: existing.assignedTo,
+          createdAt: existing.createdAt,
+          processingAt: existing.processingAt,
+          resolvedAt: existing.resolvedAt,
+        );
+        _applyFilters();
+      }
+
+      if (issue.userId != null) {
+        await sendNotificationToUser(issue.userId!, 'Grievance Escalated', 'Your complaint CMP${issue.id} has been forwarded to $nextRole.', issue.id!);
+      }
       
-      String target = nextRole;
-      if (nextRole == 'HOD' || nextRole == 'Teacher') target = '$nextRole - ${issue.department}';
-      _sendNotification(target, 'New Forwarded Grievance', 'Complaint CMP${issue.id} forwarded from $role for your attention.', issue.id!);
+      await sendNotificationByRole(nextRole, 'New Forwarded Grievance', 'Complaint CMP${issue.id} forwarded from $role for your attention.', issue.id!, dept: issue.department);
 
       return true;
     } catch (e) {
@@ -172,10 +235,10 @@ class ComplaintsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _sendNotification(String target, String title, String msg, int issueId) async {
+  Future<void> sendNotificationToUser(String targetUserId, String title, String msg, int? issueId) async {
     try {
       await Supabase.instance.client.from('notifications').insert({
-        'user_name': target,
+        'user_id': targetUserId,
         'title': title,
         'message': msg,
         'issue_id': issueId,
@@ -183,8 +246,31 @@ class ComplaintsProvider extends ChangeNotifier {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
     } catch (e) {
-      debugPrint('Notification Fail: $e');
+      try {
+         await Supabase.instance.client.from('notifications').insert({
+          'user_name': targetUserId,
+          'title': title,
+          'message': msg,
+          'issue_id': issueId,
+          'is_read': false,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        });
+      } catch (_) {}
     }
+  }
+
+  Future<void> sendNotificationByRole(String role, String title, String msg, int? issueId, {String? dept}) async {
+    try {
+      await Supabase.instance.client.from('notifications').insert({
+        'target_role': role,
+        'department': dept,
+        'title': title,
+        'message': msg,
+        'issue_id': issueId,
+        'is_read': false,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (_) {}
   }
 
   @override

@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/models.dart';
+import '../providers/complaints_provider.dart';
 import '../main.dart';
 import 'main_screen.dart';
 import 'complaint_analytics_screen.dart';
@@ -13,6 +15,7 @@ import 'issue_details_screen.dart';
 import 'broadcast_screen.dart';
 import 'profile_screen.dart';
 import 'all_complaints_screen.dart';
+import 'widgets/dialog_utils.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -28,13 +31,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
   String _userId = '';
   String? _profileImageUrl;
   
-  List<Issue> _allIssues = [];
-  List<Issue> _filteredIssues = [];
-  bool _isLoading = false;
-  
-  // Grievance Stats
-  int _totalCount = 0, _pendingCount = 0, _processingCount = 0, _resolvedCount = 0;
-
   late AnimationController _fadeController;
   final TextEditingController _searchController = TextEditingController();
 
@@ -44,7 +40,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
     _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _loadAdminData();
     _searchController.addListener(() {
-      _filterIssues(_searchController.text);
+      context.read<ComplaintsProvider>().setSearchQuery(_searchController.text);
     });
   }
 
@@ -62,56 +58,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
       _userId = prefs.getString('user_id') ?? '';
       _profileImageUrl = prefs.getString('profileImage');
     });
-    _fetchAllData();
+    _fetchData();
   }
 
-  Future<void> _fetchAllData() async {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-    
-    try {
-      final client = Supabase.instance.client;
-      
-      final issueData = await client.from('issues').select().order('id', ascending: false);
-      final List issues = (issueData as List).map((json) => Issue.fromJson(json)).toList();
-      
-      int p = 0, pr = 0, r = 0;
-      for (var issue in issues) {
-        final s = (issue as Issue).status?.toUpperCase();
-        if (s == 'PENDING' || s == 'FORWARDED') p++;
-        else if (s == 'PROCESSING') pr++;
-        else if (s == 'RESOLVED') r++;
-      }
-
-      if (mounted) {
-        setState(() {
-          _allIssues = issues.cast<Issue>();
-          _filteredIssues = issues.cast<Issue>();
-          _totalCount = issues.length;
-          _pendingCount = p;
-          _processingCount = pr;
-          _resolvedCount = r;
-          _isLoading = false;
-        });
-        _fadeController.forward(from: 0.0);
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _filterIssues(String query) {
-    final q = query.toLowerCase();
-    setState(() {
-      _filteredIssues = _allIssues.where((issue) {
-        final idStr = issue.id?.toString() ?? '';
-        final complaintId = issue.complaintId?.toLowerCase() ?? '';
-        final nameStr = issue.userName?.toLowerCase() ?? '';
-        final categoryStr = issue.category?.toLowerCase() ?? '';
-        final problemType = issue.problemType?.toLowerCase() ?? '';
-        return idStr.contains(q) || complaintId.contains(q) || nameStr.contains(q) || categoryStr.contains(q) || problemType.contains(q);
-      }).toList();
-    });
+  void _fetchData() {
+    context.read<ComplaintsProvider>().fetchComplaints(
+      role: 'Admin',
+      allInstitution: true,
+    );
+    _fadeController.forward(from: 0.0);
   }
 
   @override
@@ -127,7 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
           Container(height: 180, color: colorScheme.primary),
           SafeArea(
             child: RefreshIndicator(
-              onRefresh: _fetchAllData,
+              onRefresh: () async => _fetchData(),
               child: CustomScrollView(
                 slivers: [
                   _buildHeader(theme),
@@ -151,9 +106,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text('Recent Complaints', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF4A148C))),
-                                TextButton(
-                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: _allIssues, screenTitle: 'Total Complaints'))),
-                                  child: const Text('View All', style: TextStyle(fontSize: 16)),
+                                Consumer<ComplaintsProvider>(
+                                  builder: (context, provider, _) => TextButton(
+                                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: provider.issues, screenTitle: 'Admin View'))),
+                                    child: const Text('View All', style: TextStyle(fontSize: 16)),
+                                  ),
                                 ),
                               ],
                             ),
@@ -189,9 +146,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
           children: [
             GestureDetector(
               onTap: () => _scaffoldKey.currentState?.openDrawer(),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 backgroundColor: Colors.white24,
-                child: Icon(Icons.shield, color: Colors.white),
+                backgroundImage: _profileImageUrl != null ? MemoryImage(base64Decode(_profileImageUrl!)) : null,
+                child: _profileImageUrl == null ? const Icon(Icons.shield, color: Colors.white) : null,
               ),
             ),
             const SizedBox(width: 12),
@@ -203,6 +161,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
               ],
             ),
             const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.palette, color: Colors.white),
+              onPressed: () => showThemeDialog(context),
+            ),
             IconButton(
               icon: const Icon(Icons.notifications, color: Colors.white),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
@@ -237,19 +199,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
   }
 
   Widget _buildStatsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.15,
-      children: [
-        _buildStatCard('Total Complaints', _totalCount, const Color(0xFF1E3A8A), Icons.layers, 1.0),
-        _buildStatCard('Pending', _pendingCount, const Color(0xFFB91C1C), Icons.timer_outlined, _totalCount > 0 ? _pendingCount / _totalCount : 0.0),
-        _buildStatCard('Processing', _processingCount, const Color(0xFFC2410C), Icons.settings_outlined, _totalCount > 0 ? _processingCount / _totalCount : 0.0),
-        _buildStatCard('Resolved', _resolvedCount, const Color(0xFF15803D), Icons.check_box_outlined, _totalCount > 0 ? _resolvedCount / _totalCount : 0.0),
-      ],
+    return Consumer<ComplaintsProvider>(
+      builder: (context, provider, _) {
+        final issues = provider.issues;
+        final pending = issues.where((e) => e.status == 'PENDING' || e.status == 'FORWARDED').length;
+        final processing = issues.where((e) => e.status == 'PROCESSING').length;
+        final resolved = issues.where((e) => e.status == 'RESOLVED').length;
+        final total = issues.length;
+
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 1.15,
+          children: [
+            _buildStatCard('Institutional Grievances', total, const Color(0xFF1E3A8A), Icons.layers, 1.0),
+            _buildStatCard('Pending Verification', pending, const Color(0xFFB91C1C), Icons.timer_outlined, total > 0 ? pending / total : 0.0),
+            _buildStatCard('In Processing', processing, const Color(0xFFC2410C), Icons.settings_outlined, total > 0 ? processing / total : 0.0),
+            _buildStatCard('Resolved Issues', resolved, const Color(0xFF15803D), Icons.check_box_outlined, total > 0 ? resolved / total : 0.0),
+          ],
+        );
+      },
     );
   }
 
@@ -339,48 +311,53 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
   }
 
   Widget _buildComplaintsList(ThemeData theme) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_filteredIssues.isEmpty) return const Center(child: Text('No complaints found.'));
-    
-    final displayIssues = _filteredIssues.length > 5 ? _filteredIssues.take(5).toList() : _filteredIssues;
-    
-    return Column(
-      children: displayIssues.map((issue) {
+    return Consumer<ComplaintsProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+        final issues = provider.issues;
+        if (issues.isEmpty) return const Center(child: Text('No complaints forwarded to Admin.'));
+        
+        final displayIssues = issues.length > 5 ? issues.take(5).toList() : issues;
+        
         return Column(
-          children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${issue.userName ?? 'Anonymous'} / ${issue.usn ?? ''}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          children: displayIssues.map((issue) {
+            return Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${issue.userName ?? 'Anonymous'} / ${issue.usn ?? ''}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${issue.complaintId ?? ("CMP"+issue.id.toString())} ${issue.problemType ?? ""}',
+                          style: const TextStyle(color: Colors.grey, fontSize: 11),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        issue.createdAt != null ? issue.createdAt!.substring(0, 4) : '2024',
+                        style: const TextStyle(color: Colors.grey, fontSize: 11),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${issue.complaintId ?? ("CMP"+issue.id.toString())} ${issue.problemType ?? ""}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 11),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    issue.createdAt != null ? issue.createdAt!.substring(0, 4) : '2024',
-                    style: const TextStyle(color: Colors.grey, fontSize: 11),
-                  ),
-                ],
-              ),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => IssueDetailsScreen(issue: issue))),
-            ),
-            const Divider(height: 1),
-          ],
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => IssueDetailsScreen(issue: issue))),
+                ),
+                const Divider(height: 1),
+              ],
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 
@@ -432,16 +409,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> with Ticker
                 
                 const Divider(),
                 _buildDrawerSection('Complaint List'),
-                _buildDrawerItem(Icons.home, 'Total Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: _allIssues, screenTitle: 'Total Complaints')))),
-                _buildDrawerItem(Icons.access_time, 'Pending Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: _allIssues, statusFilter: 'Pending', screenTitle: 'Pending Complaints')))),
-                _buildDrawerItem(Icons.build, 'Processing Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: _allIssues, statusFilter: 'Processing', screenTitle: 'Processing Complaints')))),
-                _buildDrawerItem(Icons.check_box, 'Resolved Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: _allIssues, statusFilter: 'Resolved', screenTitle: 'Resolved Complaints')))),
+                Consumer<ComplaintsProvider>(
+                  builder: (context, provider, _) => Column(
+                    children: [
+                      _buildDrawerItem(Icons.home, 'Total Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: provider.issues, screenTitle: 'Total Complaints')))),
+                      _buildDrawerItem(Icons.access_time, 'Pending Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: provider.issues, statusFilter: 'Pending', screenTitle: 'Pending Complaints')))),
+                      _buildDrawerItem(Icons.build, 'Processing Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: provider.issues, statusFilter: 'Processing', screenTitle: 'Processing Complaints')))),
+                      _buildDrawerItem(Icons.check_box, 'Resolved Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => AllComplaintsScreen(initialIssues: provider.issues, statusFilter: 'Resolved', screenTitle: 'Resolved Complaints')))),
+                    ],
+                  )
+                ),
 
                 const Divider(),
                 _buildDrawerSection('Support Section'),
                 _buildDrawerItem(Icons.help_outline, 'Help / User Guide', () {}),
                 _buildDrawerItem(Icons.phone, 'Contact Support', () => showContactSupportDialog(context)),
                 _buildDrawerItem(Icons.info_outline, 'About App', () => showAboutSmartifyDialog(context)),
+                _buildDrawerItem(Icons.palette, 'Choose Theme', () => showThemeDialog(context)),
                 
                 const Divider(),
                 _buildDrawerSection('Account Section'),

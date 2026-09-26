@@ -25,15 +25,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _selectedGender = 'Male';
   
   final TextEditingController _studentIdCtrl = TextEditingController();
-  final TextEditingController _studentDeptCtrl = TextEditingController();
-  final TextEditingController _studentYearCtrl = TextEditingController();
-  final TextEditingController _studentCollegeCtrl = TextEditingController();
-  final TextEditingController _studentProgramCtrl = TextEditingController();
+  final TextEditingController _deptCtrl = TextEditingController();
+  final TextEditingController _yearCtrl = TextEditingController();
+  final TextEditingController _collegeCtrl = TextEditingController();
+  final TextEditingController _programCtrl = TextEditingController();
   
   final TextEditingController _adminIdCtrl = TextEditingController();
   final TextEditingController _positionCtrl = TextEditingController();
   
-  final TextEditingController _facultyIdCtrl = TextEditingController();
+  final TextEditingController _employeeIdCtrl = TextEditingController();
   final TextEditingController _designationCtrl = TextEditingController();
   
   String _encodedImage = '';
@@ -49,38 +49,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoading = true);
     final prefs = await SharedPreferences.getInstance();
     _userId = prefs.getString('user_id') ?? '';
+    _currentRole = prefs.getString('role') ?? 'Student';
     
     try {
-      final data = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('id', _userId)
-          .maybeSingle();
+      final client = Supabase.instance.client;
+      Map<String, dynamic>? data;
+
+      if (_currentRole == 'Student') {
+        data = await client.from('profiles').select().eq('id', _userId).maybeSingle();
+      } else if (['Teacher', 'HOD', 'Dean', 'Principal'].contains(_currentRole)) {
+        data = await client.from('faculty').select().eq('id', _userId).maybeSingle();
+      } else if (_currentRole == 'Admin') {
+        data = await client.from('admins').select().eq('id', _userId).maybeSingle();
+      }
 
       if (data != null) {
         final profile = UserProfile.fromJson(data);
         setState(() {
-          _currentRole = profile.userRole ?? 'Student';
           _nameCtrl.text = profile.fullName ?? '';
           _emailCtrl.text = profile.emailId ?? '';
           _phoneCtrl.text = profile.mobileNumber ?? '';
           _dobCtrl.text = profile.dob ?? '';
           _selectedGender = profile.gender ?? 'Male';
           _encodedImage = profile.profileImage ?? '';
+          _deptCtrl.text = profile.department ?? '';
           
           if (_currentRole == 'Student') {
             _studentIdCtrl.text = profile.studentId ?? '';
-            _studentDeptCtrl.text = profile.department ?? '';
-            _studentYearCtrl.text = profile.year ?? '';
-            _studentCollegeCtrl.text = profile.collegeName ?? '';
-            _studentProgramCtrl.text = profile.program ?? '';
+            _yearCtrl.text = profile.year ?? '';
+            _collegeCtrl.text = profile.collegeName ?? '';
+            _programCtrl.text = profile.program ?? '';
           } else if (_currentRole == 'Admin') {
             _adminIdCtrl.text = profile.adminId ?? '';
-            _studentDeptCtrl.text = profile.department ?? '';
             _positionCtrl.text = profile.position ?? '';
-          } else if (_currentRole == 'Faculty') {
-            _facultyIdCtrl.text = profile.facultyId ?? '';
-            _studentDeptCtrl.text = profile.department ?? '';
+          } else { // Faculty Roles
+            _employeeIdCtrl.text = profile.facultyId ?? '';
             _designationCtrl.text = profile.designation ?? '';
           }
         });
@@ -118,31 +121,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _saveProfile() async {
     setState(() => _isLoading = true);
+    final client = Supabase.instance.client;
     
-    final profile = UserProfile(
-      id: _userId,
-      fullName: _nameCtrl.text.trim(),
-      emailId: _emailCtrl.text.trim(),
-      mobileNumber: _phoneCtrl.text.trim(),
-      gender: _selectedGender,
-      userRole: _currentRole,
-      dob: _dobCtrl.text.trim(),
-      profileImage: _encodedImage,
-      department: _studentDeptCtrl.text.trim(),
-      studentId: _currentRole == 'Student' ? _studentIdCtrl.text.trim() : null,
-      year: _currentRole == 'Student' ? _studentYearCtrl.text.trim() : null,
-      collegeName: _currentRole == 'Student' ? _studentCollegeCtrl.text.trim() : null,
-      program: _currentRole == 'Student' ? _studentProgramCtrl.text.trim() : null,
-      adminId: _currentRole == 'Admin' ? _adminIdCtrl.text.trim() : null,
-      position: _currentRole == 'Admin' ? _positionCtrl.text.trim() : null,
-      facultyId: _currentRole == 'Faculty' ? _facultyIdCtrl.text.trim() : null,
-      designation: _currentRole == 'Faculty' ? _designationCtrl.text.trim() : null,
-    );
-
     try {
-      await Supabase.instance.client.from('profiles').upsert(profile.toJson());
+      if (_currentRole == 'Student') {
+        final payload = {
+          'id': _userId,
+          'full_name': _nameCtrl.text.trim(),
+          'mobile_number': _phoneCtrl.text.trim(),
+          'gender': _selectedGender,
+          'dob': _dobCtrl.text.trim(),
+          'profile_image': _encodedImage,
+          'department': _deptCtrl.text.trim(),
+          'student_id': _studentIdCtrl.text.trim(),
+          'year': _yearCtrl.text.trim(),
+          'college_name': _collegeCtrl.text.trim(),
+          'program': _programCtrl.text.trim(),
+        };
+        await client.from('profiles').upsert(payload);
+      } 
+      else if (['Teacher', 'HOD', 'Dean', 'Principal'].contains(_currentRole)) {
+        final payload = {
+          'id': _userId,
+          'FullName': _nameCtrl.text.trim(),
+          'MobileNumber': _phoneCtrl.text.trim(),
+          'EmployeeID': _employeeIdCtrl.text.trim(),
+          'Department': _deptCtrl.text.trim(),
+          'profile_image': _encodedImage, // Adding common fields for UI sync
+          'designation': _designationCtrl.text.trim(),
+        };
+        await client.from('faculty').upsert(payload);
+      } 
+      else if (_currentRole == 'Admin') {
+        final payload = {
+          'id': _userId,
+          'full_name': _nameCtrl.text.trim(),
+          'mobile_number': _phoneCtrl.text.trim(),
+          'admin_id': _adminIdCtrl.text.trim(),
+          'position': _positionCtrl.text.trim(),
+          'profile_image': _encodedImage,
+        };
+        await client.from('admins').upsert(payload);
+      }
+
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('name', profile.fullName ?? '');
+      await prefs.setString('name', _nameCtrl.text.trim());
       await prefs.setString('profileImage', _encodedImage);
       
       if (mounted) {
@@ -160,9 +183,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final primary = const Color(0xFF673AB7);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+      ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
@@ -175,70 +205,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       CircleAvatar(
                         radius: 60,
-                        backgroundColor: colorScheme.primary.withOpacity(0.1),
+                        backgroundColor: primary.withOpacity(0.1),
                         backgroundImage: _encodedImage.isNotEmpty 
-                          ? MemoryImage(base64Decode(_encodedImage)) 
+                          ? MemoryImage(base64Decode(_encodedImage.split(',').last)) 
                           : null,
                         child: _encodedImage.isEmpty 
-                          ? Icon(Icons.person, size: 60, color: colorScheme.primary) 
+                          ? Icon(Icons.person, size: 60, color: primary) 
                           : null,
                       ),
                       Positioned(bottom: 0, right: 0, child: InkWell(
                         onTap: _pickImage,
                         child: CircleAvatar(
                           radius: 20, 
-                          backgroundColor: colorScheme.primary, 
-                          child: Icon(Icons.camera_alt, color: colorScheme.onPrimary, size: 20)
+                          backgroundColor: primary, 
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20)
                         ),
                       )),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
-                _buildField(_nameCtrl, 'Full Name', Icons.person),
+                _buildField(_nameCtrl, 'Full Name', Icons.person, primary),
                 const SizedBox(height: 16),
-                _buildField(_emailCtrl, 'Email', Icons.email, enabled: false),
+                _buildField(_emailCtrl, 'Email Address', Icons.email, primary, enabled: false),
                 const SizedBox(height: 16),
-                _buildField(_phoneCtrl, 'Mobile Number', Icons.phone, keyboard: TextInputType.phone),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _buildField(_dobCtrl, 'DOB', Icons.cake, readOnly: true, onTap: _pickDate)),
-                    const SizedBox(width: 16),
-                    Expanded(child: DropdownButtonFormField<String>(
-                      value: _selectedGender,
-                      decoration: const InputDecoration(labelText: 'Gender', prefixIcon: Icon(Icons.wc)),
-                      items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-                      onChanged: (val) => setState(() => _selectedGender = val!),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildField(_studentDeptCtrl, 'Department', Icons.business),
-                const SizedBox(height: 16),
+                _buildField(_phoneCtrl, 'Mobile Number', Icons.phone, primary, keyboard: TextInputType.phone),
                 
                 if (_currentRole == 'Student') ...[
-                  _buildField(_studentIdCtrl, 'Student ID', Icons.badge),
                   const SizedBox(height: 16),
-                  _buildField(_studentProgramCtrl, 'Program', Icons.school),
-                  const SizedBox(height: 16),
-                  _buildField(_studentYearCtrl, 'Year', Icons.calendar_today),
-                  const SizedBox(height: 16),
-                  _buildField(_studentCollegeCtrl, 'College Name', Icons.account_balance),
-                ] else if (_currentRole == 'Admin') ...[
-                  _buildField(_adminIdCtrl, 'Admin ID', Icons.badge),
-                  const SizedBox(height: 16),
-                  _buildField(_positionCtrl, 'Position', Icons.work),
-                ] else if (_currentRole == 'Faculty') ...[
-                  _buildField(_facultyIdCtrl, 'Faculty ID', Icons.badge),
-                  const SizedBox(height: 16),
-                  _buildField(_designationCtrl, 'Designation', Icons.work),
+                  Row(
+                    children: [
+                      Expanded(child: _buildField(_dobCtrl, 'DOB', Icons.cake, primary, readOnly: true, onTap: _pickDate)),
+                      const SizedBox(width: 16),
+                      Expanded(child: DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: InputDecoration(
+                          labelText: 'Gender', 
+                          prefixIcon: Icon(Icons.wc, color: primary),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                        onChanged: (val) => setState(() => _selectedGender = val!),
+                      )),
+                    ],
+                  ),
                 ],
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                _buildField(_deptCtrl, 'Department', Icons.business, primary),
+                
+                if (_currentRole == 'Student') ...[
+                  const SizedBox(height: 16),
+                  _buildField(_studentIdCtrl, 'Student ID / USN', Icons.badge, primary),
+                  const SizedBox(height: 16),
+                  _buildField(_programCtrl, 'Program / Course', Icons.school, primary),
+                  const SizedBox(height: 16),
+                  _buildField(_yearCtrl, 'Academic Year', Icons.calendar_today, primary),
+                ] else if (_currentRole == 'Admin') ...[
+                  const SizedBox(height: 16),
+                  _buildField(_adminIdCtrl, 'Admin ID', Icons.badge, primary),
+                  const SizedBox(height: 16),
+                  _buildField(_positionCtrl, 'Position', Icons.work, primary),
+                ] else ...[ // Faculty roles
+                  const SizedBox(height: 16),
+                  _buildField(_employeeIdCtrl, 'Employee ID', Icons.badge, primary),
+                  const SizedBox(height: 16),
+                  _buildField(_designationCtrl, 'Designation', Icons.work, primary),
+                ],
+                
+                const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: _saveProfile,
-                  child: const Text('UPDATE PROFILE'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('UPDATE PROFILE', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1)),
                 ),
               ],
             ),
@@ -246,7 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon, {bool enabled = true, bool readOnly = false, VoidCallback? onTap, TextInputType keyboard = TextInputType.text}) {
+  Widget _buildField(TextEditingController ctrl, String label, IconData icon, Color color, {bool enabled = true, bool readOnly = false, VoidCallback? onTap, TextInputType keyboard = TextInputType.text}) {
     return TextField(
       controller: ctrl,
       enabled: enabled,
@@ -255,7 +299,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       keyboardType: keyboard,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon),
+        prefixIcon: Icon(icon, color: color),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
       ),
     );
   }

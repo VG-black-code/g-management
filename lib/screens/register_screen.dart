@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import 'dashboard_screen.dart';
+import 'posh/posh_widgets.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -26,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String _selectedRole = 'Student';
   bool _isLoading = false;
   bool _isOtpSent = false;
+  bool _isPoshMode = false;
   String _emailUsedForOtp = '';
   
   Timer? _timer;
@@ -73,12 +75,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _isLoading = true);
     try {
-      final response = await Supabase.instance.client
-          .from('profiles')
-          .select('id')
-          .eq('email_id', email)
-          .maybeSingle();
-      if (response != null) {
+      // Check in all tables if email exists
+      final client = Supabase.instance.client;
+      final student = await client.from('profiles').select('id').eq('email_id', email).maybeSingle();
+      final faculty = await client.from('faculty').select('id').eq('Email', email).maybeSingle();
+      final admin = await client.from('admins').select('id').eq('email', email).maybeSingle();
+
+      if (student != null || faculty != null || admin != null) {
         _stopProcess('Email already registered.');
         return;
       }
@@ -158,57 +161,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final String name = _fullNameController.text.trim();
       final String email = _emailController.text.trim().toLowerCase();
       final String phone = _mobileController.text.trim();
-      final String employeeId = _idController.text.trim();
+      final String inputId = _idController.text.trim();
       final String department = _deptController.text.trim();
       
-      final payload = {
-        'id': userId,
-        'full_name': name,
-        'email_id': email,
-        'mobile_number': phone,
-        'user_role': _selectedRole,
-        'department': department,
-        'is_approved': _selectedRole == 'Student', 
-        'is_active': true,
-      };
+      final client = Supabase.instance.client;
 
       if (_selectedRole == 'Student') {
-        payload['student_id'] = employeeId;
-        payload['year'] = _yearController.text.trim();
-      } else {
-        payload['faculty_id'] = employeeId;
-      }
-
-      // 1. Sync to profiles table
-      await Supabase.instance.client.from('profiles').upsert(payload);
-
-      // 2. Sync to faculty table and notify admin if authority role
-      final bool isAuthority = ['Teacher', 'HOD', 'Dean', 'Principal'].contains(_selectedRole);
-      if (isAuthority) {
-        // FIXED: Using exact column names for faculty table (PascalCase)
-        await Supabase.instance.client.from('faculty').upsert({
+        // 1. Save to profiles table (STUDENTS ONLY)
+        final studentPayload = {
           'id': userId,
-          'FullName': name,
-          'Email': email,
-          'MobileNumber': phone,
-          'EmployeeID': employeeId,
-          'Department': department,
-          'role': _selectedRole.toLowerCase(),
-          'Status': 'pending',
+          'full_name': name,
+          'email_id': email,
+          'mobile_number': phone,
+          'user_role': 'Student',
+          'department': department,
+          'student_id': inputId,
+          'year': _yearController.text.trim(),
+          'is_approved': true,
+          'is_active': true,
+        };
+        await client.from('profiles').upsert(studentPayload);
+      } 
+      else if (['Teacher', 'HOD', 'Dean', 'Principal', 'POSH Officer', 'POSH Head'].contains(_selectedRole)) {
+        if (['POSH Officer', 'POSH Head'].contains(_selectedRole)) {
+          // Save to posh_authorized_users table
+          await client.from('posh_authorized_users').upsert({
+            'user_id': userId,
+            'full_name': name,
+            'email': email,
+            'mobile_number': phone,
+            'employee_id': inputId,
+            'department': department,
+            'role': _selectedRole,
+            'is_approved': false,
+          });
+        } else {
+          // Save to faculty table (AUTHORITIES ONLY)
+          final facultyData = FacultyProfile(
+            id: userId,
+            fullName: name,
+            email: email,
+            mobileNumber: phone,
+            employeeId: inputId,
+            department: department,
+            role: _selectedRole,
+            status: 'pending',
+          ).toJson();
+          await client.from('faculty').upsert(facultyData);
+        }
+        
+        // Notify Admin
+        await _sendAdminNotification('New Authority Access Request', '$name registered as $_selectedRole and is waiting for approval.');
+      } 
+      else if (_selectedRole == 'Admin') {
+        // 3. Save to admins table (ADMINS ONLY)
+        await client.from('admins').upsert({
+          'id': userId,
+          'full_name': name,
+          'email': email,
+          'mobile_number': phone,
+          'admin_id': inputId,
+          'is_approved': false, // Needs Super Admin approval
         });
 
-        // 3. Notify Admin System
-        try {
-          await Supabase.instance.client.from('notifications').insert({
-            'title': 'New Authority Registered',
-            'message': '$name has registered as $_selectedRole and needs approval.',
-            'user_name': 'Admin', 
-            'is_read': false,
-            'created_at': DateTime.now().toUtc().toIso8601String(),
-          });
-        } catch (e) {
-          debugPrint('Notification sync failed: $e');
-        }
+        // Notify Super Admin
+        await _sendAdminNotification('New Admin Registration', '$name has registered as an Admin and needs your approval.');
       }
 
       final prefs = await SharedPreferences.getInstance();
@@ -224,7 +241,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (_selectedRole == 'Student') {
           Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const DashboardScreen()), (r) => false);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration Successful! Waiting for Admin Approval.')));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Registration Successful! Please wait for approval before accessing your dashboard.'),
+            duration: Duration(seconds: 5),
+          ));
           Navigator.pop(context);
         }
       }
@@ -233,10 +253,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  Future<void> _sendAdminNotification(String title, String message) async {
+    try {
+      await Supabase.instance.client.from('notifications').insert({
+        'title': title,
+        'message': message,
+        'target_role': 'Admin',
+        'is_read': false,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('Notification failed: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.shield, color: _isPoshMode ? poshPurple : null),
+            onPressed: () {
+              setState(() {
+                _isPoshMode = !_isPoshMode;
+                _selectedRole = _isPoshMode ? 'POSH Officer' : 'Student';
+              });
+            },
+            tooltip: 'POSH Authority Registration',
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -246,8 +294,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
-                  decoration: const InputDecoration(labelText: 'Select Role', prefixIcon: Icon(Icons.person_pin)),
-                  items: Constants.roles.map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
+                  decoration: InputDecoration(
+                    labelText: 'Select Role', 
+                    prefixIcon: Icon(_isPoshMode ? Icons.shield : Icons.person_pin),
+                    prefixIconColor: _isPoshMode ? poshPurple : null,
+                  ),
+                  items: (_isPoshMode 
+                      ? ['POSH Officer', 'POSH Head'] 
+                      : Constants.roles
+                  ).map((role) => DropdownMenuItem(value: role, child: Text(role))).toList(),
                   onChanged: (val) => setState(() => _selectedRole = val!),
                 ),
                 const SizedBox(height: 24),
@@ -268,9 +323,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 16),
                 _buildField('Mobile Number', _mobileController, Icons.phone, type: TextInputType.phone),
                 const SizedBox(height: 16),
-                _buildField(_selectedRole == 'Student' ? 'Student ID / USN' : 'Employee ID', _idController, Icons.badge),
+                _buildField(_selectedRole == 'Student' ? 'Student ID / USN' : (_selectedRole == 'Admin' ? 'Admin ID' : 'Employee ID'), _idController, Icons.badge),
                 
-                if (_selectedRole != 'Principal' && _selectedRole != 'Admin') ...[
+                if (_selectedRole != 'Principal' && _selectedRole != 'Admin' && _selectedRole != 'POSH Head') ...[
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Department', prefixIcon: Icon(Icons.business)),

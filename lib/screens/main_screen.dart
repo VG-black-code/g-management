@@ -29,12 +29,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
     _rotateController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 15),
     )..repeat();
-
     _rotateAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(_rotateController);
   }
 
@@ -51,7 +49,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     final password = _passwordController.text.trim();
 
     if (input.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter all fields')));
+      _showError('Please enter both Email/ID and Password');
       return;
     }
 
@@ -69,39 +67,46 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
       ));
     }
+  }
+
+  bool _isTruthy(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    final str = value.toString().toLowerCase();
+    return str == 'true' || str == '1' || str == 'approved' || str == 'active' || str == 'success';
   }
 
   Future<void> _resolveEmailAndLogin(String id, String password) async {
     try {
       final client = Supabase.instance.client;
-      final profileById = await client
-          .from('profiles')
-          .select('email_id')
-          .or('student_id.eq.$id,faculty_id.eq.$id,email_id.eq.$id')
-          .maybeSingle();
-
-      if (profileById != null && profileById['email_id'] != null) {
-        await _loginWithEmail(profileById['email_id'], password);
+      
+      // Order of precedence for ID search
+      final admin = await client.from('admins').select('email').eq('admin_id', id).maybeSingle();
+      if (admin != null) {
+        await _loginWithEmail(admin['email'], password);
         return;
       }
 
-      final adminById = await client
-          .from('admins')
-          .select('email')
-          .eq('admin_id', id)
-          .maybeSingle();
-
-      if (adminById != null && adminById['email'] != null) {
-        await _loginWithEmail(adminById['email'], password);
+      final faculty = await client.from('faculty').select('Email').eq('EmployeeID', id).maybeSingle();
+      if (faculty != null) {
+        await _loginWithEmail(faculty['Email'], password);
         return;
       }
 
-      _showError("Account not found. Please register first.");
+      final student = await client.from('profiles').select('email_id').eq('student_id', id).maybeSingle();
+      if (student != null) {
+        await _loginWithEmail(student['email_id'], password);
+        return;
+      }
+
+      _showError("Account ID '$id' is not registered.");
     } catch (e) {
-      _showError("Connection error. Please check your internet and try again.");
+      _showError("Database lookup failed.");
     }
   }
 
@@ -115,9 +120,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         await _handleLoginSuccess(email, response.session!.accessToken, response.user!);
       }
     } on AuthException catch (error) {
-      _showError("Login failed: ${error.message}");
+      _showError(error.message);
     } catch (e) {
-      _showError("Unexpected error during login. Check your connection.");
+      _showError("Login failed.");
     }
   }
 
@@ -130,71 +135,97 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
     try {
       final client = Supabase.instance.client;
-      Map<String, dynamic>? userData;
-      bool isFromAdminTable = false;
-
-      var adminResponse = await client.from('admins').select().eq('id', user.id).maybeSingle();
-      if (adminResponse == null) {
-        adminResponse = await client.from('admins').select().eq('email', email).maybeSingle();
+      final normalizedEmail = email.toLowerCase().trim();
+      
+      // 1. COMPREHENSIVE ADMIN CHECK (Check admins table by ID or Email)
+      var adminData = await client.from('admins').select().eq('id', user.id).maybeSingle();
+      if (adminData == null) {
+        adminData = await client.from('admins').select().eq('email', normalizedEmail).maybeSingle();
       }
-
-      if (adminResponse != null) {
-        userData = adminResponse;
-        isFromAdminTable = true;
-      } else {
-        final profileResponse = await client.from('profiles').select().eq('id', user.id).maybeSingle();
-        if (profileResponse != null) {
-          userData = profileResponse;
-          isFromAdminTable = false;
-        }
-      }
-
-      if (userData != null) {
-        final String role = isFromAdminTable ? 'Admin' : (userData['user_role'] ?? 'Student').toString();
-        final bool isActive = isFromAdminTable ? true : (userData['is_active'] != false);
-
-        if (!isActive) {
-          _showError("Your account has been deactivated.");
+      
+      if (adminData != null) {
+        if (_isTruthy(adminData['is_approved'])) {
+          await _saveUserSession(prefs, adminData['full_name'] ?? adminData['FullName'] ?? 'Admin', 'Admin', adminData['department'] ?? '', adminData['profile_image']);
+          if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+          return;
+        } else {
+          _showError("Admin account pending verification.");
           return;
         }
+      }
 
-        await prefs.setString('name', userData['full_name'] ?? 'User');
-        await prefs.setString('role', role);
-        await prefs.setString('department', userData['department'] ?? '');
-        
-        if (role != 'Student' && role != 'Admin') {
-          if (userData['is_approved'] != true) {
-            _showError("Your authority account is pending Admin approval.");
-            return;
+      // 2. COMPREHENSIVE FACULTY CHECK (Check faculty table by ID or Email)
+      var facultyData = await client.from('faculty').select().eq('id', user.id).maybeSingle();
+      if (facultyData == null) {
+        facultyData = await client.from('faculty').select().eq('Email', normalizedEmail).maybeSingle();
+      }
+      
+      if (facultyData != null) {
+        final status = facultyData['Status'] ?? facultyData['status'] ?? facultyData['is_approved'];
+        if (_isTruthy(status)) {
+          final String rawRole = facultyData['role'] ?? facultyData['user_role'] ?? 'Teacher';
+          final String name = facultyData['FullName'] ?? facultyData['full_name'] ?? 'Faculty';
+          final String dept = facultyData['Department'] ?? facultyData['department'] ?? '';
+          
+          if (rawRole.toLowerCase() == 'admin') {
+            await _saveUserSession(prefs, name, 'Admin', dept, facultyData['profile_image']);
+            if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+          } else {
+            await _saveUserSession(prefs, name, rawRole, dept, facultyData['profile_image']);
+            if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthorityDashboardScreen()));
           }
-          if (mounted) Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthorityDashboardScreen()));
+          return;
+        } else {
+          _showError("Institutional account pending approval.");
           return;
         }
+      }
 
+      // 3. COMPREHENSIVE PROFILES CHECK (Fallback for Students and others)
+      var profileData = await client.from('profiles').select().eq('id', user.id).maybeSingle();
+      if (profileData == null) {
+        profileData = await client.from('profiles').select().eq('email_id', normalizedEmail).maybeSingle();
+      }
+      
+      if (profileData != null) {
+        final String rawRole = profileData['user_role'] ?? profileData['role'] ?? 'Student';
+        final String normalizedRole = rawRole.trim().toLowerCase();
+        final String name = profileData['full_name'] ?? profileData['FullName'] ?? 'User';
+        final String dept = profileData['department'] ?? '';
+        final String? image = profileData['profile_image'] ?? profileData['ProfileImage'];
+        
+        await _saveUserSession(prefs, name, rawRole, dept, image);
+        
         if (mounted) {
-          if (role == 'Admin') {
+          if (normalizedRole == 'admin') {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+          } else if (['teacher', 'hod', 'dean', 'principal', 'faculty'].contains(normalizedRole)) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthorityDashboardScreen()));
           } else {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DashboardScreen()));
           }
         }
-      } else {
-        _showError("Profile not found. Please contact support.");
+        return;
       }
+
+      _showError("Login successful, but no database record found for $normalizedEmail.");
     } catch (e) {
-      _showError("Sync error: $e");
+      _showError("Session synchronization error.");
     }
+  }
+
+  Future<void> _saveUserSession(SharedPreferences prefs, String? name, String role, String dept, String? image) async {
+    await prefs.setString('name', name ?? 'User');
+    await prefs.setString('role', role);
+    await prefs.setString('department', dept);
+    if (image != null) await prefs.setString('profileImage', image);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-    const double logoLogicalSize = 250.0;
-    const Color brandingNavy = Color(0xFF1A237E);
-    const Color brandingPurple = Color(0xFF9C27B0);
-    const Color brandingOrange = Color(0xFFFF6D00);
+    const Color brandNavy = Color(0xFF1A237E);
+    const Color brandPurple = Color(0xFF9C27B0);
+    const Color brandOrange = Color(0xFFFF6D00);
 
     return Scaffold(
       body: Container(
@@ -204,10 +235,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.05),
-              theme.scaffoldBackgroundColor,
-            ],
+            colors: [Theme.of(context).colorScheme.primary.withOpacity(0.05), Theme.of(context).scaffoldBackgroundColor],
           ),
         ),
         child: SafeArea(
@@ -216,64 +244,34 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedBuilder(
-                      animation: _rotateAnimation,
-                      builder: (context, child) => Transform.rotate(
-                        angle: _rotateAnimation.value,
-                        child: Image.asset('assets/LOGO.png', width: logoLogicalSize, height: logoLogicalSize, fit: BoxFit.contain),
-                      ),
-                    ),
-                    ClipOval(
-                      child: Container(
-                        width: logoLogicalSize * 0.49,
-                        height: logoLogicalSize * 0.49,
-                        color: theme.scaffoldBackgroundColor,
-                        child: OverflowBox(
-                          minWidth: logoLogicalSize,
-                          maxWidth: logoLogicalSize,
-                          minHeight: logoLogicalSize,
-                          maxHeight: logoLogicalSize,
-                          child: Image.asset('assets/LOGO.png', fit: BoxFit.contain),
-                        ),
-                      ),
-                    ),
-                  ],
+                AnimatedBuilder(
+                  animation: _rotateAnimation,
+                  builder: (context, child) => Transform.rotate(
+                    angle: _rotateAnimation.value,
+                    child: Image.asset('assets/LOGO.png', width: 220, height: 220),
+                  ),
                 ),
                 RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.w900,
-                      color: brandingNavy,
-                      letterSpacing: 1.2,
-                      fontFamily: textTheme.displayLarge?.fontFamily,
-                    ),
+                  text: const TextSpan(
+                    style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: brandNavy, letterSpacing: 1.2),
                     children: [
-                      const TextSpan(text: 'SM'),
-                      const TextSpan(text: 'Λ', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const TextSpan(text: 'RT'),
-                      const TextSpan(text: 'i', style: TextStyle(color: brandingPurple)),
-                      const TextSpan(text: 'FY'),
+                      TextSpan(text: 'SM'),
+                      TextSpan(text: 'Λ', style: TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(text: 'RT'),
+                      TextSpan(text: 'i', style: TextStyle(color: brandPurple)),
+                      TextSpan(text: 'FY'),
                     ],
                   ),
                 ),
-                Text(
-                  '· YOUR VOICE · OUR ACTION · BETTER CAMPUS ·',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                const SizedBox(height: 10),
+                const Text('* YOUR VOICE * OUR ACTION * BETTER CAMPUS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                 const SizedBox(height: 40),
                 TextField(
                   controller: _identifierController,
                   decoration: const InputDecoration(
-                    hintText: 'College Email / ID / USN',
+                    hintText: 'Email / ID / USN', 
                     prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -283,6 +281,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   decoration: InputDecoration(
                     hintText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -292,14 +291,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                    ),
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: brandingOrange, fontWeight: FontWeight.bold),
-                    ),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                    child: const Text('Forgot Password?', style: TextStyle(color: brandOrange, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 30),
@@ -309,36 +302,23 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: brandingOrange,
+                      backgroundColor: brandOrange, 
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                          )
-                        : const Text('LOG IN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: _isLoading 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : const Text('LOG IN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
                 ),
                 const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      "Don't have an account? ",
-                      style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 14),
-                    ),
+                    const Text("Don't have an account? ", style: TextStyle(color: Colors.grey)),
                     GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                      ),
-                      child: const Text(
-                        "Register Now",
-                        style: TextStyle(color: brandingOrange, fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                      child: const Text("Register Now", style: TextStyle(color: brandOrange, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

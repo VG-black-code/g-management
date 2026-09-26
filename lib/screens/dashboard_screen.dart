@@ -12,6 +12,10 @@ import 'profile_screen.dart';
 import 'notifications_screen.dart';
 import 'issue_details_screen.dart';
 import 'issues_list_screen.dart';
+import 'posh/posh_home_screen.dart';
+import 'posh/posh_officer_dashboard.dart';
+import 'posh/posh_widgets.dart';
+import 'widgets/dialog_utils.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -27,11 +31,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _profileImageUrl;
   bool _hasUnread = false;
   int _selectedIndex = 0;
+  bool _isPoshOfficer = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _checkPoshRole();
   }
 
   Future<void> _loadUserData() async {
@@ -48,14 +54,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  Future<void> _checkPoshRole() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final data = await Supabase.instance.client
+            .from('posh_authorized_users')
+            .select()
+            .eq('user_id', user.id)
+            .maybeSingle();
+        if (mounted) {
+          setState(() {
+            _isPoshOfficer = data != null;
+          });
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<void> _checkNotifications() async {
     try {
       final displayName = _userName.contains(' / ') ? _userName.split(' / ')[0] : _userName;
-      final data = await Supabase.instance.client
-          .from('notifications')
-          .select()
-          .eq('user_name', displayName)
-          .eq('is_read', false);
+      final client = Supabase.instance.client;
+      
+      var query = client.from('notifications').select().eq('is_read', false);
+      if (_isPoshOfficer) {
+        query = query.or('user_name.eq.$displayName,target_role.eq.posh_officer');
+      } else {
+        query = query.eq('user_name', displayName);
+      }
+
+      final data = await query;
       if (mounted) setState(() => _hasUnread = (data as List).isNotEmpty);
     } catch (_) {}
   }
@@ -416,24 +445,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerSection('User Section'),
+                _buildDrawerSection('USER SECTION'),
                 _buildDrawerItem(Icons.edit, 'Update Profile', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()))),
                 _buildDrawerItem(Icons.info_outline, 'Complaint Status', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IssuesListScreen()))),
                 _buildDrawerItem(Icons.edit, 'Raise Complaint', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ComplaintScreen()))),
                 _buildDrawerItem(Icons.menu, 'My Complaints', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IssuesListScreen()))),
                 
                 const Divider(),
-                _buildDrawerSection('Support Section'),
+                _buildDrawerSection('CONFIDENTIAL'),
+                _buildDrawerItem(Icons.shield, '🔐 POSH & Harassment', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PoshHomeScreen())), subtitle: 'Report harassment or abuse confidentially and securely'),
+                
+                if (_isPoshOfficer) ...[
+                  const Divider(),
+                  _buildDrawerSection('POSH MANAGEMENT'),
+                  _buildDrawerItem(Icons.admin_panel_settings, 'POSH Dashboard', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PoshOfficerDashboard()))),
+                ],
+
+                const Divider(),
+                _buildDrawerSection('SUPPORT SECTION'),
                 _buildDrawerItem(Icons.help_outline, 'Help / User Guide', () {}),
                 _buildDrawerItem(Icons.phone, 'Contact Support', () => showContactSupportDialog(context)),
                 _buildDrawerItem(Icons.info_outline, 'About App', () => showAboutSmartifyDialog(context)),
                 
                 const Divider(),
-                _buildDrawerSection('App Settings'),
+                _buildDrawerSection('APP SETTINGS'),
                 _buildDrawerItem(Icons.palette, 'Choose Theme', () => showThemeDialog(context)),
                 
                 const Divider(),
-                _buildDrawerSection('Account Section'),
+                _buildDrawerSection('ACCOUNT SECTION'),
                 _buildDrawerItem(Icons.logout, 'Logout', () async {
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.clear();
@@ -457,11 +496,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap, {Color? color}) {
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap, {Color? color, String? subtitle}) {
     return ListTile(
-      dense: true,
-      leading: Icon(icon, color: color ?? Colors.grey[700], size: 20),
+      dense: subtitle == null,
+      leading: Icon(icon, color: color ?? Colors.grey[700], size: 22),
       title: Text(title, style: TextStyle(color: color ?? Colors.black87, fontWeight: FontWeight.w500, fontSize: 14)),
+      subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)) : null,
       onTap: onTap,
     );
   }

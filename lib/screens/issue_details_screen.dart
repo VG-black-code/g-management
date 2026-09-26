@@ -39,13 +39,41 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     if (user != null) {
       _userId = user.id;
       try {
-        final data = await Supabase.instance.client.from('profiles').select().eq('id', user.id).single();
-        if (mounted) {
-          setState(() {
-            final profile = UserProfile.fromJson(data);
-            _userRole = profile.userRole ?? 'Student';
-            _userName = profile.fullName ?? 'User';
-          });
+        final client = Supabase.instance.client;
+        
+        // 1. Check Profiles (Students)
+        final profileData = await client.from('profiles').select().eq('id', user.id).maybeSingle();
+        if (profileData != null) {
+          if (mounted) {
+            setState(() {
+              _userRole = profileData['user_role'] ?? 'Student';
+              _userName = profileData['full_name'] ?? 'User';
+            });
+          }
+          return;
+        }
+
+        // 2. Check Faculty (Teachers, etc.)
+        final facultyData = await client.from('faculty').select().eq('id', user.id).maybeSingle();
+        if (facultyData != null) {
+          if (mounted) {
+            setState(() {
+              _userRole = facultyData['role'] ?? 'Teacher';
+              _userName = facultyData['FullName'] ?? 'User';
+            });
+          }
+          return;
+        }
+
+        // 3. Check Admin
+        final adminData = await client.from('admins').select().eq('id', user.id).maybeSingle();
+        if (adminData != null) {
+          if (mounted) {
+            setState(() {
+              _userRole = 'Admin';
+              _userName = adminData['full_name'] ?? 'Admin';
+            });
+          }
         }
       } catch (e) {
         debugPrint('Error loading user data: $e');
@@ -109,30 +137,60 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     final provider = context.read<ComplaintsProvider>();
     final TextEditingController remarkController = TextEditingController();
     String? nextRole;
+    List<String> forwardOptions = [];
 
     final normalizedRole = _userRole.toLowerCase();
+    final isAcademic = widget.issue.category == 'Academic';
 
     if (action == 'FORWARD') {
-      if (normalizedRole == 'teacher' || normalizedRole == 'faculty') nextRole = 'HOD';
-      else if (normalizedRole == 'hod') nextRole = 'Dean';
-      else if (normalizedRole == 'dean') nextRole = 'Principal';
+      if (normalizedRole == 'teacher' || normalizedRole == 'faculty') {
+        forwardOptions.add('HOD');
+        if (!isAcademic) forwardOptions.add('Admin');
+      } else if (normalizedRole == 'hod') {
+        forwardOptions.add('Dean');
+      } else if (normalizedRole == 'dean') {
+        forwardOptions.add(isAcademic ? 'Principal' : 'Admin');
+      }
+
+      if (forwardOptions.length == 1) {
+        nextRole = forwardOptions.first;
+      } else if (forwardOptions.length > 1) {
+        nextRole = await showDialog<String>(
+          context: context,
+          builder: (context) => SimpleDialog(
+            title: const Text('Forward to:'),
+            children: forwardOptions.map((role) => SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, role),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(role, style: const TextStyle(fontSize: 16)),
+              ),
+            )).toList(),
+          ),
+        );
+        if (nextRole == null) return;
+      }
     }
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(action == 'PROCESS' ? 'Start Processing?' : action == 'RESOLVE' ? 'Resolve Complaint?' : 'Forward to ${nextRole ?? "Authority"}?'),
+        title: Text(
+          action == 'PROCESS' ? 'Start Processing?' : 
+          action == 'RESOLVE' ? 'Mark as Resolved?' : 
+          'Forward to ${nextRole ?? "Authority"}?'
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Action will be recorded as $_userName.'),
-            const SizedBox(height: 16),
+            Text('Enter a reply or action taken for the student:', style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+            const SizedBox(height: 12),
             TextField(
               controller: remarkController,
               decoration: InputDecoration(
-                hintText: 'Enter remarks/comments...',
+                hintText: 'e.g. Discussed with class teacher / Replaced broken bench',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: Colors.grey.shade50,
@@ -146,6 +204,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
+              backgroundColor: action == 'RESOLVE' ? Colors.green : (action == 'PROCESS' ? Colors.orange : Colors.blue),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             child: const Text('Confirm'),
@@ -156,7 +216,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
 
     if (confirmed != true) return;
 
-    // Show loading indicator
     if (mounted) {
       showDialog(
         context: context,
@@ -166,48 +225,38 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     }
 
     bool success = false;
+    final comment = remarkController.text.trim();
     if (action == 'PROCESS') {
-      success = await provider.updateStatus(widget.issue, 'PROCESSING', comment: remarkController.text, userName: _userName, role: _userRole, userId: _userId);
+      success = await provider.updateStatus(widget.issue, 'PROCESSING', comment: comment, userName: _userName, role: _userRole, userId: _userId);
     } else if (action == 'RESOLVE') {
-      success = await provider.updateStatus(widget.issue, 'RESOLVED', comment: remarkController.text, userName: _userName, role: _userRole, userId: _userId);
+      success = await provider.updateStatus(widget.issue, 'RESOLVED', comment: comment, userName: _userName, role: _userRole, userId: _userId);
     } else if (action == 'FORWARD' && nextRole != null) {
-      success = await provider.forwardComplaint(widget.issue, nextRole, 'Institutional Escalation', remarkController.text, userName: _userName, role: _userRole);
+      success = await provider.forwardComplaint(widget.issue, nextRole, 'Institutional Escalation', comment, userName: _userName, role: _userRole);
     }
 
-    // Dismiss loading indicator
     if (mounted) Navigator.pop(context);
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Complaint successfully ${action.toLowerCase()}ed'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text('Action recorded successfully!'), backgroundColor: Colors.green),
       );
-      Navigator.pop(context); // Go back to list
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to perform action: ${provider.error ?? "Unknown error"}'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      _fetchHistory(); // Refresh history immediately
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final normalizedRole = _userRole.toLowerCase();
-    final isFaculty = ['teacher', 'faculty', 'hod', 'dean', 'principal'].contains(normalizedRole);
+    final isFaculty = ['teacher', 'faculty', 'hod', 'dean', 'principal', 'admin'].contains(normalizedRole);
     
-    // Authorization check: User can act only if their role matches the issue's current authority role
-    // Or if the issue is unassigned and they have the required role (e.g. any teacher in dept)
-    final isAuthorized = widget.issue.currentAuthorityRole?.toLowerCase() == normalizedRole;
+    bool isAuthorized = widget.issue.currentAuthorityRole?.toLowerCase() == normalizedRole;
+    if (!isAuthorized && normalizedRole == 'admin' && widget.issue.category == 'General') {
+      isAuthorized = true;
+    }
     
-    final isPending = widget.issue.status == 'PENDING' || widget.issue.status == 'FORWARDED';
-    final isProcessing = widget.issue.status == 'PROCESSING';
+    final status = widget.issue.status?.toUpperCase() ?? 'PENDING';
+    final isResolved = status == 'RESOLVED';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -232,6 +281,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeaderSection(),
+                  const SizedBox(height: 20),
+                  _buildLatestReplySection(), // NEW SECTION
                   const Divider(height: 40),
                   _buildInfoGrid(),
                   const SizedBox(height: 24),
@@ -245,25 +296,102 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
           ],
         ),
       ),
-      bottomSheet: (isFaculty && isAuthorized && (isPending || isProcessing)) ? _buildActionButtons() : null,
+      bottomSheet: (isFaculty && isAuthorized && !isResolved) ? _buildActionButtons() : null,
+    );
+  }
+
+  Widget _buildLatestReplySection() {
+    // Find the latest history entry with a comment from an authority
+    final latestReply = _history.reversed.firstWhere(
+      (h) => h.comment != null && h.comment!.trim().isNotEmpty && h.performedByRole != 'Student',
+      orElse: () => ComplaintHistory(),
+    );
+
+    if (latestReply.comment == null) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.reply_all, color: Colors.green.shade700, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'RESPONSE FROM ${latestReply.performedByRole?.toUpperCase()}',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.green.shade700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            latestReply.comment!,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Replied by ${latestReply.performedByName} on ${_formatDate(latestReply.createdAt)}',
+            style: TextStyle(fontSize: 11, color: Colors.green.shade600),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildActionButtons() {
-    final isPending = widget.issue.status == 'PENDING' || widget.issue.status == 'FORWARDED';
+    final status = widget.issue.status?.toUpperCase() ?? 'PENDING';
+    final isPending = status == 'PENDING' || status == 'FORWARDED';
+    final isProcessing = status == 'PROCESSING';
+    final normalizedRole = _userRole.toLowerCase();
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))]
+      ),
       child: Row(
         children: [
-          if (isPending)
-            Expanded(child: ElevatedButton(onPressed: () => _handleAction('PROCESS'), style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white), child: const Text('START PROCESSING'))),
-          if (!isPending)
-            Expanded(child: ElevatedButton(onPressed: () => _handleAction('RESOLVE'), style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white), child: const Text('RESOLVE'))),
+          if (isPending) ...[
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _handleAction('PROCESS'), 
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white), 
+                child: const Text('PROCESS')
+              )
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _handleAction('RESOLVE'), 
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white), 
+                child: const Text('RESOLVE')
+              )
+            ),
+          ],
+          if (isProcessing)
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _handleAction('RESOLVE'), 
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white), 
+                child: const Text('MARK RESOLVED')
+              )
+            ),
           const SizedBox(width: 12),
-          if (_userRole.toLowerCase() != 'principal')
-            Expanded(child: OutlinedButton(onPressed: () => _handleAction('FORWARD'), child: const Text('FORWARD'))),
+          if (normalizedRole != 'principal' && normalizedRole != 'admin')
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => _handleAction('FORWARD'), 
+                child: const Text('FORWARD')
+              )
+            ),
         ],
       ),
     );
@@ -333,16 +461,17 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Complaint Timeline', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Activity Log', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
         if (_isLoadingHistory) const Center(child: CircularProgressIndicator())
         else if (_history.isEmpty) const Text('No history available.')
-        else ..._history.map((h) => _buildTimelineItem(h)).toList(),
+        else ..._history.reversed.map((h) => _buildTimelineItem(h)).toList(),
       ],
     );
   }
 
   Widget _buildTimelineItem(ComplaintHistory h) {
+    bool isAuthority = h.performedByRole != 'Student';
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -350,7 +479,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         children: [
           Column(
             children: [
-              Container(width: 12, height: 12, decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle)),
+              Container(width: 12, height: 12, decoration: BoxDecoration(color: isAuthority ? Colors.green : Colors.blue, shape: BoxShape.circle)),
               Container(width: 2, height: 50, color: Colors.grey.shade200),
             ],
           ),
@@ -362,11 +491,15 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                 Text(h.action?.replaceAll('_', ' ') ?? 'Update', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 2),
                 Text('By ${h.performedByName} (${h.performedByRole})', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                if (h.comment != null) ...[
+                if (h.comment != null && h.comment!.trim().isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: isAuthority ? Colors.green.shade50 : Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: isAuthority ? Border.all(color: Colors.green.shade100) : null,
+                    ),
                     child: Text(h.comment!, style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic)),
                   ),
                 ],
@@ -382,14 +515,14 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
 
   Widget _buildStatusBadge(String status) {
     Color color = Colors.red;
-    if (status == 'RESOLVED') color = Colors.green;
-    else if (status == 'PROCESSING') color = Colors.orange;
-    else if (status == 'FORWARDED') color = Colors.blue;
+    if (status.toUpperCase() == 'RESOLVED') color = Colors.green;
+    else if (status.toUpperCase() == 'PROCESSING') color = Colors.orange;
+    else if (status.toUpperCase() == 'FORWARDED') color = Colors.blue;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-      child: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+      child: Text(status.toUpperCase(), style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
 
